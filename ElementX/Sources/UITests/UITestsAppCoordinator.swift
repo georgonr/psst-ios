@@ -669,6 +669,7 @@ class MockScreen: Identifiable {
                                                       appHooks: AppHooks(),
                                                       analyticsService: analytics,
                                                       userIndicatorController: UserIndicatorControllerMock(),
+                                                      targetContext: .mock,
                                                       authenticationServiceFactory: AuthenticationServiceFactoryMock(.init()))
             
             flowCoordinator.handleAppRoute(id == .rootFlowSignedIn ? .roomList : .authentication, animated: false)
