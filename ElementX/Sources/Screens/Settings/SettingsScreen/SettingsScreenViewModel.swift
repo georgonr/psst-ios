@@ -22,7 +22,7 @@ class SettingsScreenViewModel: SettingsScreenViewModelType, SettingsScreenViewMo
         actionsSubject.eraseToAnyPublisher()
     }
     
-    init(userSession: UserSessionProtocol, isBugReportServiceEnabled: Bool, isInSecondaryWindow: Bool, userIndicatorController: UserIndicatorControllerProtocol) {
+    init(userSession: UserSessionProtocol, isInSecondaryWindow: Bool, userIndicatorController: UserIndicatorControllerProtocol) {
         userSettings = userSession.userSettings
         clientProxy = userSession.clientProxy
         self.userIndicatorController = userIndicatorController
@@ -34,7 +34,7 @@ class SettingsScreenViewModel: SettingsScreenViewModelType, SettingsScreenViewMo
                                            showAccountDeactivation: userSession.clientProxy.canDeactivateAccount,
                                            showDeveloperOptions: userSettings.app.developerOptionsEnabled,
                                            showAnalyticsSettings: userSettings.app.canPromptForAnalytics,
-                                           isBugReportServiceEnabled: isBugReportServiceEnabled,
+                                           isBugReportServiceEnabled: userSettings.account.bugReportRageshakeConfiguration.publisher.value.isEnabled,
                                            navigationBarVisibility: isInSecondaryWindow ? .hidden : .automatic,
                                            bindings: .init(userSettings: userSettings)),
                    mediaProvider: userSession.mediaProvider)

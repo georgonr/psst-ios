@@ -316,13 +316,15 @@ struct SettingsScreen_Previews: PreviewProvider, TestablePreview {
         let userSettings = UserSettings.mock()
         userSettings.app.multiAccountEnabled = true
         userSettings.app.linkNewDeviceEnabled = true
+        if !isBugReportServiceEnabled {
+            userSettings.account.bugReportRageshakeConfiguration.applyRemoteValue(.disabled)
+        }
         let userSession = UserSessionMock(.init(clientProxy: ClientProxyMock(.init(userID: "@alice:example.com",
                                                                                    deviceID: "AAAAAAAAAAA",
                                                                                    displayName: "Alice Liddell",
                                                                                    status: .mockFocussing)),
                                                 userSettings: userSettings))
         return SettingsScreenViewModel(userSession: userSession,
-                                       isBugReportServiceEnabled: isBugReportServiceEnabled,
                                        isInSecondaryWindow: false,
                                        userIndicatorController: UserIndicatorControllerMock())
     }
