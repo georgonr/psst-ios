@@ -138,17 +138,17 @@ final nonisolated class AppSettings: @unchecked Sendable {
     let searchBackfillTaskIdentifier = "eu.macet.psst.background.search-backfill" // PSST: renamed
     
     /// A URL where users can go read more about the app.
-    // PSST: macet.eu is the OAuth client_uri host. MAS requires logo/tos/policy URIs on the same host and the
-    // private-use redirect scheme (eu.macet.psst) to be the reversed client_uri host + suffix.
-    private(set) var websiteURL: URL = "https://macet.eu"
+    // PSST: app.macet.eu is the OAuth client_uri (same as Android). MAS expects logo/tos/policy URIs on the same host
+    // and the private-use redirect scheme to be the reversed client_uri host (eu.macet.app, see oAuthRedirectURL).
+    private(set) var websiteURL: URL = "https://app.macet.eu"
     /// A URL that contains the app's logo that may be used when showing content in a web view.
-    private(set) var logoURL: URL = "https://macet.eu/psst/logo.png" // PSST
+    private(set) var logoURL: URL = "https://app.macet.eu/vector-icons/512.png" // PSST: icon shipped by psst web
     /// A URL that contains that app's copyright notice.
-    private(set) var copyrightURL: URL = "https://github.com/georgonr/psst-ios/blob/psst/LICENSE" // PSST: AGPL licence
+    private(set) var copyrightURL: URL = "https://app.macet.eu/terms.html" // PSST: psst terms (SK/EN); AGPL source link is separate
     /// A URL that contains the app's Terms of use.
-    private(set) var acceptableUseURL: URL = "https://macet.eu/psst/terms" // PSST
+    private(set) var acceptableUseURL: URL = "https://app.macet.eu/terms.html" // PSST
     /// A URL that contains the app's Privacy Policy.
-    private(set) var privacyURL: URL = "https://macet.eu/psst/privacy" // PSST
+    private(set) var privacyURL: URL = "https://app.macet.eu/privacy.html" // PSST
     /// PSST: The source code of this AGPL-licensed build, linked from Settings > About.
     let sourceCodeURL: URL = "https://github.com/georgonr/psst-ios"
     /// A URL where users can go read more about encryption in general.
@@ -203,12 +203,13 @@ final nonisolated class AppSettings: @unchecked Sendable {
     let oAuthStaticRegistrations: [URL: String] = ["https://id.thirdroom.io/realms/thirdroom": "elementx"]
     /// The redirect URL used for OAuth. For the normal case we don't actually need the bundle ID as the web authentication session handles the redirect internally.
     /// However in the case where MAS sends the user to an external app, we need to make sure that the system will open the correct variant of the app (e.g. Nightly).
-    // PSST: private-use scheme (already registered in CFBundleURLSchemes) instead of an element.io universal link.
-    private(set) nonisolated(unsafe) var oAuthRedirectURL: URL! = URL(string: "\(InfoPlistReader.main.baseBundleIdentifier):/oauth/callback")
+    // PSST: private-use scheme = reversed client_uri host (app.macet.eu -> eu.macet.app), registered in
+    // CFBundleURLSchemes (target.yml / Info.plist), instead of an element.io universal link.
+    private(set) nonisolated(unsafe) var oAuthRedirectURL: URL! = URL(string: "eu.macet.app:/oauth/callback")
     /// A path that is appended to `websiteURL` to form the OAuth `clientURI`. MAS uses `clientURI` as the identifier for a specific app, allowing us to
     /// distinguish the various clients we have for Android, iOS and Web from each other.
     /// Intentionally a distinct property so it can be easily overridden without having to manipulate the website URL.
-    private(set) var oAuthClientURIPath: String? = "psst/ios" // PSST
+    private(set) var oAuthClientURIPath: String? = nil // PSST: client_uri is exactly https://app.macet.eu
     
     var oAuthConfiguration: OAuthConfiguration {
         OAuthConfiguration(clientName: InfoPlistReader.main.bundleDisplayName,

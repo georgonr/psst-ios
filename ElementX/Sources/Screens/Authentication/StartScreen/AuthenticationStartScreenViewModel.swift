@@ -18,6 +18,8 @@ class AuthenticationStartScreenViewModel: AuthenticationStartScreenViewModelType
     private let userIndicatorController: UserIndicatorControllerProtocol
     
     private let canReportProblem: Bool
+    /// PSST: "Create account" goes straight to the OAuth (MAS) registration of the single locked account provider.
+    private let registersDirectly: Bool
     
     private var actionsSubject: PassthroughSubject<AuthenticationStartScreenViewModelAction, Never> = .init()
     
@@ -39,6 +41,7 @@ class AuthenticationStartScreenViewModel: AuthenticationStartScreenViewModelType
         self.appMediator = appMediator
         self.userIndicatorController = userIndicatorController
         canReportProblem = isBugReportServiceEnabled
+        registersDirectly = !appSettings.allowOtherAccountProviders && appSettings.accountProviders.count == 1 // PSST
         
         let isQRCodeScanningSupported = !ProcessInfo.processInfo.isiOSAppOnMac
         
@@ -46,10 +49,11 @@ class AuthenticationStartScreenViewModel: AuthenticationStartScreenViewModelType
         let showCreateAccountButton: Bool
         let showQRCodeLoginButton: Bool
         if !appSettings.allowOtherAccountProviders {
-            // We don't show the create account button when custom providers are disallowed.
-            // The assumption here being that if you're running a custom app, your users will already be created.
+            // PSST: upstream hides "Create account" when custom providers are disallowed. psst is locked to
+            // chat.macet.eu whose MAS allows registration (with an invite token), so the button is shown and opens
+            // the MAS registration page (OAuth prompt=create) of that single provider directly - no server picker.
             serverNameOrBaseURL = appSettings.accountProviders.count == 1 ? appSettings.accountProviders[0].serverNameOrBaseURL : nil
-            showCreateAccountButton = false
+            showCreateAccountButton = appSettings.showCreateAccountButton && serverNameOrBaseURL != nil
             showQRCodeLoginButton = isQRCodeScanningSupported
         } else if let provisioningParameters {
             // We only show the "Sign in to …" button when using a provisioning link.
@@ -111,7 +115,12 @@ class AuthenticationStartScreenViewModel: AuthenticationStartScreenViewModelType
         case .login:
             Task { await login() }
         case .register:
-            actionsSubject.send(.register)
+            // PSST: register directly on the locked account provider (see `registersDirectly`).
+            if registersDirectly, let serverNameOrBaseURL = state.serverNameOrBaseURL {
+                Task { await loginDirectly(using: serverNameOrBaseURL, flow: .register) }
+            } else {
+                actionsSubject.send(.register)
+            }
             
         case .continueWithClassic(let account):
             Task { await login(classicAppAccount: account) }
@@ -143,14 +152,17 @@ class AuthenticationStartScreenViewModel: AuthenticationStartScreenViewModelType
         }
     }
     
-    private func loginDirectly(using serverNameOrBaseURL: String, loginHint: String? = nil, fallbackHomeserverURL: URL? = nil) async {
+    private func loginDirectly(using serverNameOrBaseURL: String,
+                               loginHint: String? = nil,
+                               fallbackHomeserverURL: URL? = nil,
+                               flow: AuthenticationFlow = .login) async { // PSST: flow (.register for "Create account")
         startLoading()
         defer { stopLoading() }
         
-        if case .failure = await authenticationService.configure(for: serverNameOrBaseURL, flow: .login) {
+        if case .failure = await authenticationService.configure(for: serverNameOrBaseURL, flow: flow) {
             // Try the fallback URL before showing an error.
             if let fallbackHomeserverURL,
-               case .success = await authenticationService.configure(for: fallbackHomeserverURL.absoluteString, flow: .login) {
+               case .success = await authenticationService.configure(for: fallbackHomeserverURL.absoluteString, flow: flow) {
                 // Fallback succeeded, continue with the flow.
             } else {
                 // As the server was provisioned, we don't worry about the specifics and show a generic error to the user.
