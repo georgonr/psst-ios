@@ -26,11 +26,11 @@ struct LegalInformationScreen: View {
             
             // PSST: AGPL-3.0 §13 - offer the corresponding source of this modified build.
             Section {
-                ListRow(label: .plain(title: "Source code (AGPL-3.0)", // swiftlint:disable:this hardcoded_string
-                                      description: "github.com/georgonr/psst-ios"), // swiftlint:disable:this hardcoded_string
+                ListRow(label: .plain(title: "Source code (AGPL-3.0)",
+                                      description: "github.com/georgonr/psst-ios"),
                         kind: .button { openURL(context.viewState.sourceCodeURL) })
             } footer: {
-                Text("psst is a modified build of Element X iOS by Element Creations Ltd / New Vector Ltd, licensed under AGPL-3.0.") // swiftlint:disable:this hardcoded_string
+                Text("psst is a modified build of Element X iOS by Element Creations Ltd / New Vector Ltd, licensed under AGPL-3.0.")
                     .compoundListSectionFooter()
             }
         }
