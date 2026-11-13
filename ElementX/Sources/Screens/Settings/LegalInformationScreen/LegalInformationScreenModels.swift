@@ -15,6 +15,8 @@ struct LegalInformationScreenViewState: BindableState {
     let copyrightURL: URL
     let acceptableUseURL: URL
     let privacyURL: URL
+    /// PSST: link to the AGPL source of this build.
+    let sourceCodeURL: URL
 }
 
 enum LegalInformationScreenViewAction { }

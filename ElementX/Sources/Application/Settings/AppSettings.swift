@@ -124,27 +124,33 @@ final nonisolated class AppSettings: @unchecked Sendable {
     ///
     /// Account provider is the friendly term for the server name. It should not contain an `https` prefix and should
     /// match the last part of the user ID. For example `example.com` and not `https://matrix.example.com`.
-    private(set) var accountProviders: [AccountProvider] = [.managed(serverName: "matrix.org", baseURL: "https://matrix-client.matrix.org")]
+    // PSST: the app is locked to the psst homeserver, exactly like the Android build.
+    private(set) var accountProviders: [AccountProvider] = [.managed(serverName: "chat.macet.eu", baseURL: "https://chat.macet.eu")]
     /// Whether or not the user is allowed to manually enter their own account provider or must select from one of `defaultAccountProviders`.
-    private(set) var allowOtherAccountProviders = true
+    // PSST: no custom servers - hides the server picker, "Create account" and rejects QR logins for other servers.
+    private(set) var allowOtherAccountProviders = false
     /// Whether the components surrounding the app brand/logo should be hidden or not
     private(set) var hideBrandChrome = false
     
     /// The task identifier used for background app refresh. Also used in main target's the Info.plist
-    let backgroundAppRefreshTaskIdentifier = "io.element.elementx.background.refresh"
+    let backgroundAppRefreshTaskIdentifier = "eu.macet.psst.background.refresh" // PSST: renamed
     /// The task identifier used for the search index backfill. Also used in main target's the Info.plist
-    let searchBackfillTaskIdentifier = "io.element.elementx.background.search-backfill"
+    let searchBackfillTaskIdentifier = "eu.macet.psst.background.search-backfill" // PSST: renamed
     
     /// A URL where users can go read more about the app.
-    private(set) var websiteURL: URL = "https://element.io"
+    // PSST: macet.eu is the OAuth client_uri host. MAS requires logo/tos/policy URIs on the same host and the
+    // private-use redirect scheme (eu.macet.psst) to be the reversed client_uri host + suffix.
+    private(set) var websiteURL: URL = "https://macet.eu"
     /// A URL that contains the app's logo that may be used when showing content in a web view.
-    private(set) var logoURL: URL = "https://element.io/mobile-icon.png"
+    private(set) var logoURL: URL = "https://macet.eu/psst/logo.png" // PSST
     /// A URL that contains that app's copyright notice.
-    private(set) var copyrightURL: URL = "https://element.io/copyright"
+    private(set) var copyrightURL: URL = "https://github.com/georgonr/psst-ios/blob/psst/LICENSE" // PSST: AGPL licence
     /// A URL that contains the app's Terms of use.
-    private(set) var acceptableUseURL: URL = "https://element.io/acceptable-use-policy-terms"
+    private(set) var acceptableUseURL: URL = "https://macet.eu/psst/terms" // PSST
     /// A URL that contains the app's Privacy Policy.
-    private(set) var privacyURL: URL = "https://element.io/privacy"
+    private(set) var privacyURL: URL = "https://macet.eu/psst/privacy" // PSST
+    /// PSST: The source code of this AGPL-licensed build, linked from Settings > About.
+    let sourceCodeURL: URL = "https://github.com/georgonr/psst-ios"
     /// A URL where users can go read more about encryption in general.
     private(set) var encryptionURL: URL = "https://element.io/help#encryption"
     /// A URL where users can go read more about device verification..
@@ -157,9 +163,9 @@ final nonisolated class AppSettings: @unchecked Sendable {
     private(set) var historySharingDetailsURL: URL = "https://element.io/en/help#e2ee-history-sharing"
     
     /// Any domains that Element web may be hosted on - used for handling links.
-    private(set) var elementWebHosts = ["app.element.io", "staging.element.io", "develop.element.io"]
+    private(set) var elementWebHosts = ["app.macet.eu"] // PSST: psst web client
     /// The domain that account provisioning links will be hosted on - used for handling the links.
-    private(set) var accountProvisioningHost = "mobile.element.io"
+    private(set) var accountProvisioningHost = "app.macet.eu" // PSST
     /// The App Store URL for Element Pro, shown to the user when a homeserver requires that app.
     /// **Note:** This property isn't overridable as it in unexpected for forks to come across the error (or to even have a "Pro" app).
     let elementProAppStoreURL: URL = "https://apps.apple.com/app/element-pro-for-work/id6502951615"
@@ -197,11 +203,12 @@ final nonisolated class AppSettings: @unchecked Sendable {
     let oAuthStaticRegistrations: [URL: String] = ["https://id.thirdroom.io/realms/thirdroom": "elementx"]
     /// The redirect URL used for OAuth. For the normal case we don't actually need the bundle ID as the web authentication session handles the redirect internally.
     /// However in the case where MAS sends the user to an external app, we need to make sure that the system will open the correct variant of the app (e.g. Nightly).
-    private(set) nonisolated(unsafe) var oAuthRedirectURL: URL! = URL(string: "https://element.io/oauth/ios/\(InfoPlistReader.main.bundleIdentifier)")
+    // PSST: private-use scheme (already registered in CFBundleURLSchemes) instead of an element.io universal link.
+    private(set) nonisolated(unsafe) var oAuthRedirectURL: URL! = URL(string: "\(InfoPlistReader.main.baseBundleIdentifier):/oauth/callback")
     /// A path that is appended to `websiteURL` to form the OAuth `clientURI`. MAS uses `clientURI` as the identifier for a specific app, allowing us to
     /// distinguish the various clients we have for Android, iOS and Web from each other.
     /// Intentionally a distinct property so it can be easily overridden without having to manipulate the website URL.
-    private(set) var oAuthClientURIPath: String? = "apps/ios"
+    private(set) var oAuthClientURIPath: String? = "psst/ios" // PSST
     
     var oAuthConfiguration: OAuthConfiguration {
         OAuthConfiguration(clientName: InfoPlistReader.main.bundleDisplayName,
@@ -228,7 +235,9 @@ final nonisolated class AppSettings: @unchecked Sendable {
         #endif
     }
     
-    private(set) var pushGatewayBaseURL: URL = "https://matrix.org"
+    // PSST: Element's Sygnal (matrix.org) cannot deliver to eu.macet.psst. A self-hosted Sygnal with the psst APNs key
+    // is expected at chat.macet.eu; until it exists push notifications do not work (see docs/decisions/ios.md).
+    private(set) var pushGatewayBaseURL: URL = "https://chat.macet.eu"
     var pushGatewayNotifyEndpoint: URL {
         pushGatewayBaseURL.appending(path: "_matrix/push/v1/notify")
     }
@@ -258,7 +267,7 @@ final nonisolated class AppSettings: @unchecked Sendable {
     let bugReportSentryURL: URL? = Secrets.sentryDSN.map { URL(string: $0)! } // swiftlint:disable:this force_unwrapping
     let bugReportSentryRustURL: URL? = Secrets.sentryRustDSN.map { URL(string: $0)! } // swiftlint:disable:this force_unwrapping
     /// The name allocated by the bug report server
-    private(set) var bugReportApplicationID = "element-x-ios"
+    private(set) var bugReportApplicationID = "psst-ios" // PSST
     
     // MARK: - Analytics
     

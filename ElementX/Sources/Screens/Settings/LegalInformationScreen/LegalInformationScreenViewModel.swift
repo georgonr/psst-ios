@@ -15,6 +15,7 @@ class LegalInformationScreenViewModel: LegalInformationScreenViewModelType, Lega
     init(userSettings: UserSettings) {
         super.init(initialViewState: LegalInformationScreenViewState(copyrightURL: userSettings.app.copyrightURL,
                                                                      acceptableUseURL: userSettings.app.acceptableUseURL,
-                                                                     privacyURL: userSettings.app.privacyURL))
+                                                                     privacyURL: userSettings.app.privacyURL,
+                                                                     sourceCodeURL: userSettings.app.sourceCodeURL)) // PSST
     }
 }

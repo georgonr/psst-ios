@@ -88,16 +88,13 @@ struct AuthenticationStartScreen: View {
                 Spacer()
                 
                 if !context.viewState.hideBrandChrome {
+                    // PSST: Element's "Be in your element" slogan replaced with the app name.
                     VStack(spacing: 8) {
-                        Text(L10n.screenOnboardingWelcomeTitle)
+                        Text(InfoPlistReader.main.bundleDisplayName)
                             .font(.compound.headingLGBold)
                             .foregroundColor(.compound.textPrimary)
                             .multilineTextAlignment(.center)
                             .accessibilityAddTraits(.isHeader)
-                        Text(L10n.screenOnboardingWelcomeMessage(InfoPlistReader.main.productionAppName))
-                            .font(.compound.bodyLG)
-                            .foregroundColor(.compound.textPrimary)
-                            .multilineTextAlignment(.center)
                     }
                     .padding()
                     .fixedSize(horizontal: false, vertical: true)
