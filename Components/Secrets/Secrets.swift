@@ -1,9 +1,10 @@
+// PSST: no analytics, crash reporting, rageshake or MapTiler keys are ever compiled into psst.
+// Every value is nil, which disables PostHog, Sentry, bug reports and the bundled map tiles.
 nonisolated enum Secrets {
-    static let sentryDSN: String? = "https://username@sentry.localhost/project_id"
-    static let sentryRustDSN: String? = "https://username@sentry.localhost/project_id"
-    static let postHogHost: String? = "https://posthog.localhost"
-    static let postHogAPIKey: String? = "your_key"
-    static let rageshakeURL: String? = "https://rageshake.localhost/submit"
-    static let mapLibreAPIKey: String? = "your_key"
-
+    static let sentryDSN: String? = nil
+    static let sentryRustDSN: String? = nil
+    static let postHogHost: String? = nil
+    static let postHogAPIKey: String? = nil
+    static let rageshakeURL: String? = nil
+    static let mapLibreAPIKey: String? = nil
 }

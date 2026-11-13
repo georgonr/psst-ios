@@ -263,26 +263,23 @@ final nonisolated class AppSettings: @unchecked Sendable {
     
     // MARK: - Bug report
     
-    let bugReportRageshakeURL: RemotePreference<RageshakeConfiguration> = .init(Secrets.rageshakeURL.map { .url(URL(string: $0)!) } ?? .disabled) // swiftlint:disable:this force_unwrapping
-    let bugReportSentryURL: URL? = Secrets.sentryDSN.map { URL(string: $0)! } // swiftlint:disable:this force_unwrapping
-    let bugReportSentryRustURL: URL? = Secrets.sentryRustDSN.map { URL(string: $0)! } // swiftlint:disable:this force_unwrapping
+    // PSST: rageshake bug reports and Sentry crash reporting are disabled unconditionally (no Element endpoints).
+    let bugReportRageshakeURL: RemotePreference<RageshakeConfiguration> = .init(.disabled)
+    let bugReportSentryURL: URL? = nil
+    let bugReportSentryRustURL: URL? = nil
     /// The name allocated by the bug report server
     private(set) var bugReportApplicationID = "psst-ios" // PSST
     
     // MARK: - Analytics
     
     /// The configuration to use for analytics. Set to `nil` to disable analytics.
-    let analyticsConfiguration: AnalyticsConfiguration? = AppSettings.makeAnalyticsConfiguration()
+    // PSST: PostHog analytics disabled unconditionally - the consent prompt is never shown and the client never starts.
+    let analyticsConfiguration: AnalyticsConfiguration? = nil
     /// The URL to open with more information about analytics terms. When this is `nil` the "Learn more" link will be hidden.
-    private(set) var analyticsTermsURL: URL? = "https://element.io/cookie-policy"
+    private(set) var analyticsTermsURL: URL? = nil // PSST
     /// Whether or not there the app is able ask for user consent to enable analytics or sentry reporting.
     var canPromptForAnalytics: Bool {
         analyticsConfiguration != nil || bugReportSentryURL != nil
-    }
-    
-    private static func makeAnalyticsConfiguration() -> AnalyticsConfiguration? {
-        guard let host = Secrets.postHogHost, let apiKey = Secrets.postHogAPIKey else { return nil }
-        return AnalyticsConfiguration(host: host, apiKey: apiKey)
     }
     
     /// Whether the user has opted in to send analytics.
@@ -327,10 +324,11 @@ final nonisolated class AppSettings: @unchecked Sendable {
     let elementCallBaseURL: URL = EmbeddedElementCall.appURL!
     #endif
     
-    // These are publicly availble on https://call.element.io so we don't neeed to treat them as secrets
-    let elementCallPosthogAPIHost = "https://posthog-element-call.element.io"
-    let elementCallPosthogAPIKey = "phc_rXGHx9vDmyEvyRxPziYtdVIv0ahEv8A9uLWFcCi1WcU"
-    let elementCallPosthogSentryDSN = "https://3bd2f95ba5554d4497da7153b552ffb5@sentry.tools.element.io/41"
+    // PSST: Element Call's PostHog/Sentry (element.io) removed. Calls use the Element Call web app bundled in the
+    // EmbeddedElementCall package (never call.element.io) and the LiveKit focus advertised by chat.macet.eu.
+    let elementCallPosthogAPIHost = ""
+    let elementCallPosthogAPIKey = ""
+    let elementCallPosthogSentryDSN = ""
     
     @UserPreference
     var elementCallBaseURLOverride: URL?
@@ -343,8 +341,10 @@ final nonisolated class AppSettings: @unchecked Sendable {
     // MARK: - Maps
     
     /// The locally-bundled MapTiler configuration.
+    // PSST: no bundled MapTiler key (Element's key is not ours) - location sharing stays disabled unless
+    // chat.macet.eu provides its own map configuration.
     private(set) var bundledMapTilerConfiguration = MapTilerConfiguration(baseURL: "https://api.maptiler.com/maps",
-                                                                          apiKey: Secrets.mapLibreAPIKey,
+                                                                          apiKey: nil,
                                                                           lightStyleID: "9bc819c8-e627-474a-a348-ec144fe3d810",
                                                                           darkStyleID: "dea61faf-292b-4774-9660-58fcef89a7f3")
     
