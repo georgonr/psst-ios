@@ -1,3 +1,4 @@
 [submodule "Enterprise"]
 	path = Enterprise
 	url = git@github.com:element-hq/element-ios-enterprise
+	update = none
