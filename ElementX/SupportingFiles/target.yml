@@ -75,10 +75,7 @@ targets:
         appGroupIdentifier: $(APP_GROUP_IDENTIFIER)
         baseBundleIdentifier: $(BASE_BUNDLE_IDENTIFIER)
         keychainAccessGroupIdentifier: $(KEYCHAIN_ACCESS_GROUP_IDENTIFIER)
-        classicAppGroupIdentifier: $(CLASSIC_APP_GROUP_IDENTIFIER)
-        classicAppKeychainServiceIdentifier: $(CLASSIC_APP_KEYCHAIN_SERVICE_IDENTIFIER)
-        classicAppKeychainAccessGroupIdentifier: $(CLASSIC_APP_KEYCHAIN_ACCESS_GROUP_IDENTIFIER)
-        classicAppDeepLinkURL: $(CLASSIC_APP_DEEP_LINK_URL)
+        # PSST: classicApp* keys removed - no Element Classic migration (ClassicAppManager stays disabled).
         productionAppName: $(PRODUCTION_APP_NAME)
         isNightlyBuild: $(IS_NIGHTLY_BUILD)
         ITSAppUsesNonExemptEncryption: false
@@ -99,9 +96,10 @@ targets:
           voip,
           location
         ]
+        # PSST: task identifiers renamed to the psst bundle id, must match AppSettings.
         BGTaskSchedulerPermittedIdentifiers: [
-          io.element.elementx.background.refresh,
-          io.element.elementx.background.search-backfill
+          eu.macet.psst.background.refresh,
+          eu.macet.psst.background.search-backfill
         ]
         UTExportedTypeDeclarations:
         - UTTypeConformsTo: [public.text]
@@ -118,24 +116,18 @@ targets:
       path: ElementX.entitlements
       properties:
         aps-environment: development
+        # PSST: Element's domains replaced. Universal links only work once app.macet.eu serves an
+        # apple-app-site-association file listing <TEAM_ID>.eu.macet.psst (see docs/decisions/ios.md).
         com.apple.developer.associated-domains:
-        - applinks:element.io
-        - applinks:app.element.io
-        - applinks:staging.element.io
-        - applinks:develop.element.io
-        - applinks:mobile.element.io
-        - applinks:matrix.to
+        - applinks:app.macet.eu
         # - applinks:localhost?mode=developer # developer mode only works with https (but self-signed is fine).
-        - webcredentials:*.element.io
         com.apple.developer.usernotifications.communication: true
         com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
-        - $(APP_GROUP_IDENTIFIER)
-        - $(CLASSIC_APP_GROUP_IDENTIFIER)
+        - $(APP_GROUP_IDENTIFIER) # PSST: classic app group removed
         com.apple.security.network.client: true
         keychain-access-groups:
-        - $(KEYCHAIN_ACCESS_GROUP_IDENTIFIER)
-        - $(CLASSIC_APP_KEYCHAIN_ACCESS_GROUP_IDENTIFIER)
+        - $(KEYCHAIN_ACCESS_GROUP_IDENTIFIER) # PSST: classic keychain group removed
 
     settings:
       base:

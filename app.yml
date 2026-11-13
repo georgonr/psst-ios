@@ -1,14 +1,15 @@
+# PSST: privately-branded build of Element X iOS (https://github.com/georgonr/psst-ios).
+# All bundle / app group / keychain identifiers are derived from these values in the target.yml files.
 settings:
-  APP_DISPLAY_NAME: Element X
-  PRODUCTION_APP_NAME: Element
-  APP_GROUP_IDENTIFIER: group.io.element
-  BASE_BUNDLE_IDENTIFIER: io.element.elementx
+  APP_DISPLAY_NAME: psst
+  PRODUCTION_APP_NAME: psst
+  APP_GROUP_IDENTIFIER: group.eu.macet.psst
+  BASE_BUNDLE_IDENTIFIER: eu.macet.psst
   ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "colors/accent-color"
-  DEVELOPMENT_TEAM: 7J4U792NQT
+  # PSST: no team is committed. Signed builds pass DEVELOPMENT_TEAM=<APPLE_TEAM_ID> to xcodebuild
+  # (see .github/workflows/ios-release.yml in georgonr/psst). Simulator builds run unsigned.
+  DEVELOPMENT_TEAM: ""
   IS_NIGHTLY_BUILD: false
 
-  # Optional configuration to load accounts from Element Classic.
-  CLASSIC_APP_GROUP_IDENTIFIER: group.im.vector
-  CLASSIC_APP_KEYCHAIN_SERVICE_IDENTIFIER: im.vector.app.encryption-manager-service
-  CLASSIC_APP_KEYCHAIN_ACCESS_GROUP_IDENTIFIER: "$(DEVELOPMENT_TEAM).im.vector.app.keychain.shared"
-  CLASSIC_APP_DEEP_LINK_URL: "element://open"
+  # PSST: Element Classic account migration removed (CLASSIC_APP_* settings). psst has no legacy app,
+  # and the im.vector app group / keychain group would make provisioning impossible.

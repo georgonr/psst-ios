@@ -7,11 +7,27 @@
 //
 
 import Compound
+import SwiftUI
 
 nonisolated protocol CompoundHookProtocol: Sendable {
     @MainActor func override(colors: CompoundColors, uiColors: CompoundUIColors)
 }
 
 struct DefaultCompoundHook: CompoundHookProtocol {
-    func override(colors: CompoundColors, uiColors: CompoundUIColors) { }
+    // PSST: brand accent colour #38BDF8 (sky-400) replaces Element's green accent tokens.
+    func override(colors: CompoundColors, uiColors: CompoundUIColors) {
+        let accent = UIColor(red: 0x38 / 255, green: 0xBD / 255, blue: 0xF8 / 255, alpha: 1)
+        
+        colors.override(\.iconAccentPrimary, with: Color(uiColor: accent))
+        colors.override(\.iconAccentTertiary, with: Color(uiColor: accent))
+        colors.override(\.textActionAccent, with: Color(uiColor: accent))
+        colors.override(\.bgAccentRest, with: Color(uiColor: accent))
+        colors.override(\.borderAccentPrimary, with: Color(uiColor: accent))
+        
+        uiColors.override(\.iconAccentPrimary, with: accent)
+        uiColors.override(\.iconAccentTertiary, with: accent)
+        uiColors.override(\.textActionAccent, with: accent)
+        uiColors.override(\.bgAccentRest, with: accent)
+        uiColors.override(\.borderAccentPrimary, with: accent)
+    }
 }

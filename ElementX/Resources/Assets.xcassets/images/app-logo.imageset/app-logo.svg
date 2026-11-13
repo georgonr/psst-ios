@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="110" height="110" viewBox="0 0 160 160">
+  <title>psst</title>
+  <rect x="0" y="0" width="160" height="160" rx="36" ry="36" fill="#0F172A"/>
+  <rect x="30" y="38" width="13" height="84" rx="6.5" ry="6.5" fill="#38BDF8"/>
+  <rect x="53" y="52" width="13" height="56" rx="6.5" ry="6.5" fill="#FFFFFF" fill-opacity="1"/>
+  <rect x="76" y="64" width="13" height="32" rx="6.5" ry="6.5" fill="#FFFFFF" fill-opacity="0.72"/>
+  <rect x="99" y="72" width="13" height="16" rx="6.5" ry="6.5" fill="#FFFFFF" fill-opacity="0.45"/>
+  <rect x="122" y="76" width="13" height="8" rx="4" ry="4" fill="#FFFFFF" fill-opacity="0.22"/>
+</svg>
