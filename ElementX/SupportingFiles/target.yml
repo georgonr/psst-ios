@@ -53,6 +53,8 @@ targets:
         CFBundleDisplayName: $(APP_DISPLAY_NAME)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # PSST: build date (YYYY-MM-DD) shown with the build number in Settings (BUILD.md "Verzovanie")
+        PSSTBuildDate: $(PSST_BUILD_DATE)
         CFBundleURLTypes: [
           {
             CFBundleTypeRole: Editor,

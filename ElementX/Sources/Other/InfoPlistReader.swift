@@ -84,6 +84,11 @@ nonisolated struct InfoPlistReader {
         infoPlistValue(forKey: kCFBundleVersionKey as String)
     }
     
+    /// PSST: build date (YYYY-MM-DD) set by CI, "dev" for local builds.
+    var psstBuildDate: String {
+        (bundle.object(forInfoDictionaryKey: "PSSTBuildDate") as? String) ?? "dev"
+    }
+    
     /// Bundle display name of the target
     var bundleDisplayName: String {
         infoPlistValue(forKey: Keys.bundleDisplayName)

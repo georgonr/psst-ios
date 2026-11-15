@@ -256,7 +256,9 @@ struct SettingsScreen: View {
         // Let's not snapshot a changing version string.
         let shortVersion = ProcessInfo.isRunningTests ? "0.0.0" : InfoPlistReader.main.bundleShortVersionString
         let version = ProcessInfo.isRunningTests ? "1" : InfoPlistReader.main.bundleVersion
-        return Text(L10n.settingsVersionNumber(shortVersion, version))
+        // PSST: "26.11.0 (b42, 2026-11-15)" — build number and build date (BUILD.md "Verzovanie")
+        let build = ProcessInfo.isRunningTests ? version : "b\(version), \(InfoPlistReader.main.psstBuildDate)"
+        return Text(L10n.settingsVersionNumber(shortVersion, build))
     }
     
     private var toolbar: some ToolbarContent {
