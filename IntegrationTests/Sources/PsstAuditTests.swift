@@ -93,6 +93,21 @@ final class PsstAuditTests: XCTestCase {
         for _ in 0..<3 { _ = tapAny(["Allow", "Allow While Using App", "OK"], in: springboard, timeout: 1) }
     }
 
+    /// Puts exactly `text` into a web form field: cursor to the end, delete everything, type, check the value.
+    private func setField(_ field: XCUIElement, _ text: String, secure: Bool) {
+        for _ in 0..<3 {
+            field.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()
+            if !app.keyboards.firstMatch.waitForExistence(timeout: 5) { field.tap() }
+            let current = (field.value as? String) ?? ""
+            let placeholderLike = current == "Username" || current == "Password"
+            let count = placeholderLike ? 0 : current.count
+            if count > 0 { field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: count + 2)) }
+            field.typeText(text)
+            let value = (field.value as? String) ?? ""
+            if secure ? value.count == text.count : value == text { return }
+        }
+    }
+
     override func setUp() async throws {
         continueAfterFailure = true
         app = Application.launch()
@@ -121,12 +136,21 @@ final class PsstAuditTests: XCTestCase {
         _ = tapAny(["Continue"], in: springboard, timeout: 30)
         let user = safari.textFields["Username"].firstMatch
         guard user.waitForExistence(timeout: 60) else { record("login", false, "MAS formulár sa neotvoril"); return }
-        user.clearAndTypeText(app.username, app: app)
-        safari.buttons["Done"].firstMatch.tap() // keyboard away so the password field is hittable (as upstream)
         let pw = safari.secureTextFields["Password"].firstMatch
-        pw.clearAndTypeText(app.password, app: app, verifyingValue: false)
-        safari.buttons["Done"].firstMatch.tap()
-        _ = tapAny(["Continue"], in: safari, timeout: 5)
+        for attempt in 1...3 {
+            setField(user, app.username, secure: false)
+            _ = tapAny(["Done"], in: safari, timeout: 2) // keyboard away so the password field is hittable (as upstream)
+            setField(pw, app.password, secure: true)
+            _ = tapAny(["Done"], in: safari, timeout: 2)
+            let typedUser = (user.value as? String) ?? ""
+            print("PSST-DIAG|login-fields|attempt \(attempt)|user ok: \(typedUser == app.username)|pw length ok: \(((pw.value as? String) ?? "").count == app.password.count)")
+            _ = tapAny(["Continue"], in: safari, timeout: 5)
+            sleep(3)
+            _ = tapAny(["Not Now"], timeout: 2) || tapAny(["Not Now"], in: springboard, timeout: 2) || tapAny(["Not Now"], in: safari, timeout: 2)
+            let invalid = safari.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] 'invalid'")).firstMatch
+            if !(invalid.exists && user.exists) { break }
+            print("PSST-DIAG|login-invalid|attempt \(attempt)|\(invalid.label)")
+        }
         _ = tapAny(["Not Now"], timeout: 5)
         _ = tapAny(["Continue"], in: safari, timeout: 20) // consent
         allowSystemAlerts()
