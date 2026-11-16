@@ -44,8 +44,8 @@ final class PsstAuditTests: XCTestCase {
         guard let root = try? app.snapshot() else { return [] }
         var out: [String] = []
         func collect(_ s: XCUIElementSnapshot) {
-            // no de-duplication: SAS may show the same emoji twice
-            if !s.label.isEmpty, s.children.isEmpty || s.identifier == identifier { out.append(s.label) }
+            // the first labelled element per branch is one emoji; no de-duplication (SAS may repeat an emoji)
+            if !s.label.isEmpty { out.append(s.label); return }
             for c in s.children { collect(c) }
         }
         func walk(_ s: XCUIElementSnapshot) {
