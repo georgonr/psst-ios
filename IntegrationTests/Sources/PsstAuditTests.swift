@@ -108,10 +108,24 @@ final class PsstAuditTests: XCTestCase {
         return composer.waitForExistence(timeout: 60)
     }
 
-    private func send(_ text: String) {
+    /// Types into the composer only once it has keyboard focus (tap again if the keyboard did not come up).
+    private func typeInComposer(_ text: String) -> Bool {
         let composer = app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch
-        composer.clearAndTypeText(text, app: app, verifyingValue: false)
+        guard composer.waitForExistence(timeout: 20) else { return false }
+        for _ in 0..<4 {
+            composer.tap()
+            if app.keyboards.firstMatch.waitForExistence(timeout: 4) { composer.typeText(text); return true }
+            app.showKeyboardIfNeeded()
+            if app.keyboards.firstMatch.waitForExistence(timeout: 2) { composer.typeText(text); return true }
+        }
+        return false
+    }
+
+    @discardableResult
+    private func send(_ text: String) -> Bool {
+        guard typeInComposer(text) else { return false }
         app.buttons[A11yIdentifiers.roomScreen.sendButton].firstMatch.tap()
+        return true
     }
 
     private func longPress(_ fragment: String) -> Bool {
@@ -152,7 +166,9 @@ final class PsstAuditTests: XCTestCase {
 
         // reaction
         if longPress("pong:\(id)") {
-            let ok = tapAny(["👍"], timeout: 5)
+            let thumbs = app.buttons.matching(NSPredicate(format: "label CONTAINS %@ OR identifier CONTAINS %@", "👍", "👍")).firstMatch
+            let ok = thumbs.waitForExistence(timeout: 5) && thumbs.isHittable
+            if ok { thumbs.tap() } else { _ = tapAny(["Close", "Cancel"], timeout: 2) }
             record("reaction", ok, ok ? "rýchla reakcia 👍 (doručenie overí partner)" : "reakcia v menu chýba")
         }
 
@@ -160,9 +176,7 @@ final class PsstAuditTests: XCTestCase {
         send("ping:e\(id) na upravu")
         if texts("pong:e\(id)").firstMatch.waitForExistence(timeout: 60), longPress("na upravu") {
             let ok = tapAny([A11yIdentifiers.roomScreen.timelineItemActionMenuAction.edit, "Edit"], timeout: 5)
-            if ok {
-                let composer = app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch
-                composer.tap(); app.showKeyboardIfNeeded(); composer.typeText(" EDITED")
+            if ok, typeInComposer(" EDITED") {
                 app.buttons[A11yIdentifiers.roomScreen.sendButton].firstMatch.tap()
             }
             record("edit", ok, "úprava správy (doručenie overí partner)")
@@ -240,7 +254,9 @@ final class PsstAuditTests: XCTestCase {
             texts("@\(app.username)").firstMatch.tap()
             let field = app.textFields.firstMatch
             if field.waitForExistence(timeout: 10) {
-                field.tap(); app.showKeyboardIfNeeded(); field.typeText(" iOS")
+                field.tap()
+                if !app.keyboards.firstMatch.waitForExistence(timeout: 4) { field.tap(); app.showKeyboardIfNeeded() }
+                if app.keyboards.firstMatch.waitForExistence(timeout: 3) { field.typeText(" iOS") }
                 let saved = tapAny(["Save"], timeout: 5)
                 record("profile", saved, "zmena zobrazovaného mena v Nastaveniach")
                 _ = tapAny(["Back", "Cancel"], timeout: 3)
