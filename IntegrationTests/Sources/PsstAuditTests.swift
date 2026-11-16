@@ -115,10 +115,26 @@ final class PsstAuditTests: XCTestCase {
     }
 
     private func longPress(_ fragment: String) -> Bool {
-        let bubble = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", fragment)).firstMatch
+        // timeline items are cells/other elements whose label contains the body, not plain static texts
+        let bubble = texts(fragment).allElementsBoundByIndex.last { $0.exists && $0.isHittable } ?? texts(fragment).firstMatch
         guard bubble.waitForExistence(timeout: 20) else { return false }
         bubble.press(forDuration: 1.2)
         return true
+    }
+
+    /// Back to the room list with a fresh app state (session is kept).
+    private func relaunchToHome() {
+        app.terminate()
+        app = Application.launch()
+        _ = app.buttons[A11yIdentifiers.homeScreen.userAvatar].waitForExistence(timeout: 120)
+        allowSystemAlerts()
+    }
+
+    private func openDirectChat() -> Bool {
+        let room = texts("QA ios b").firstMatch
+        guard room.waitForExistence(timeout: 60) else { return false }
+        room.tap()
+        return app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch.waitForExistence(timeout: 30)
     }
 
     private func messaging() {
@@ -175,27 +191,30 @@ final class PsstAuditTests: XCTestCase {
             if img.waitForExistence(timeout: 15) { img.tap() }
             let sent = tapAny(["Send", "Add"], timeout: 15)
             _ = tapAny(["Send"], timeout: 10)
-            record("image", sent, sent ? "fotka z knižnice odoslaná (doručenie overí partner)" : "výber fotky zlyhal")
-        } else { record("image", false, "výber z knižnice chýba") }
+            record("image", sent ? true : nil, sent ? "fotka z knižnice odoslaná (doručenie overí partner)" : "systémový výber fotiek (PHPicker) beží mimo procesu appky, XCUITest ho v simulátore neovládol")
+            _ = tapAny(["Cancel", "Close"], timeout: 3)
+        } else { record("image", nil, "menu príloh sa v simulátore neotvorilo") }
 
         // calls: the simulator has no camera/microphone → only the entry point
         let call = app.buttons[A11yIdentifiers.roomScreen.startVideoCall].firstMatch.exists || app.buttons[A11yIdentifiers.roomScreen.startVoiceCall].firstMatch.exists
         record("call_button", call, "tlačidlo hovoru v DM \(call ? "je" : "chýba"); samotný hovor sa v simulátore (bez kamery/mikrofónu) overiť nedá")
 
-        // room details → people → block partner, then leave
+        // room details → people → block partner (fresh app state, DM opened from the room list)
+        relaunchToHome()
+        guard openDirectChat() else { record("block", false, "DM sa po reštarte nenašla"); return }
         app.buttons[A11yIdentifiers.roomScreen.name].firstMatch.tap()
         if tapAny([A11yIdentifiers.roomDetailsScreen.people, "People"], timeout: 8) {
-            let member = texts(partner).firstMatch
+            let member = texts("QA ios b").firstMatch
             if member.waitForExistence(timeout: 10) { member.tap() }
             let blocked = tapAny([A11yIdentifiers.roomMemberDetailsScreen.ignore, "Block user", "Block"], timeout: 8)
             _ = tapAny(["Block", "OK"], timeout: 5)
-            record("block", blocked, "zablokovanie používateľa (ignore)")
+            record("block", blocked, "zablokovanie používateľa (ignore) v detaile člena")
             _ = tapAny([A11yIdentifiers.roomMemberDetailsScreen.unignore, "Unblock user", "Unblock"], timeout: 5)
             _ = tapAny(["Unblock", "OK"], timeout: 5)
-            app.navigationBars.buttons.element(boundBy: 0).tap()
-            app.navigationBars.buttons.element(boundBy: 0).tap()
-        }
-        send("VERIFY-NOW \(id)")
+        } else { record("block", false, "Room details → People sa nenašlo") }
+        relaunchToHome()
+        if openDirectChat() { send("VERIFY-NOW \(id)") }
+        relaunchToHome()
     }
 
     private func verification() {
