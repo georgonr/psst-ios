@@ -27,6 +27,7 @@ enum SettingsScreenCoordinatorAction {
     case manageAccount(url: URL)
     case linkNewDevice
     case notifications
+    case psstNotificationsCalls // PSST
     case secureBackup
     case moderationAndSafety
     case bugReport
@@ -84,6 +85,8 @@ final class SettingsScreenCoordinator: CoordinatorProtocol {
                     actionsSubject.send(.linkNewDevice)
                 case .notifications:
                     actionsSubject.send(.notifications)
+                case .psstNotificationsCalls:
+                    actionsSubject.send(.psstNotificationsCalls)
                 case .secureBackup:
                     actionsSubject.send(.secureBackup)
                 case .moderationAndSafety:

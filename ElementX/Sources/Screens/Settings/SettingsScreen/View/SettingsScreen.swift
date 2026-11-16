@@ -119,6 +119,14 @@ struct SettingsScreen: View {
                     })
                     .accessibilityIdentifier(A11yIdentifiers.settingsScreen.notifications)
             
+            // PSST: system permissions for notifications and calls (PsstNotificationsCallsScreen)
+            ListRow(label: .default(title: PsstL10n.tr("psst_nc_title"),
+                                    icon: \.voiceCall),
+                    kind: .navigationLink {
+                        context.send(viewAction: .psstNotificationsCalls)
+                    })
+                    .accessibilityIdentifier("settings-psst_notifications_calls")
+            
             switch context.viewState.securitySectionMode {
             case .secureBackup:
                 ListRow(label: .default(title: L10n.commonEncryption,

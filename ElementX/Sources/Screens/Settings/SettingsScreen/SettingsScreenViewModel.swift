@@ -118,6 +118,8 @@ class SettingsScreenViewModel: SettingsScreenViewModelType, SettingsScreenViewMo
             actionsSubject.send(.linkNewDevice)
         case .notifications:
             actionsSubject.send(.notifications)
+        case .psstNotificationsCalls:
+            actionsSubject.send(.psstNotificationsCalls)
         case .secureBackup:
             actionsSubject.send(.secureBackup)
         case .moderationAndSafety:

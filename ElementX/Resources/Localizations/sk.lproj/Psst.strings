@@ -1,0 +1,62 @@
+/* PSST reťazce (tabuľka "Psst", PsstL10n). Angličtina v en.lproj/Psst.strings. */
+
+"psst_nc_title" = "Upozornenia a hovory";
+"psst_nc_intro" = "Každý riadok ukazuje aktuálne nastavenie iOS. Zapnutie požiada iOS o povolenie, alebo otvorí Nastavenia, ak to iOS dovolí zmeniť len tam.";
+"psst_nc_missing_banner" = "Pre spoľahlivé upozornenia a hovory psst potrebuje:";
+"psst_nc_missing" = "Chýba";
+"psst_nc_section_notifications" = "Upozornenia";
+"psst_nc_section_calls" = "Hovory";
+"psst_nc_section_tests" = "Vyskúšať";
+
+"psst_nc_row_notifications" = "Povoliť upozornenia";
+"psst_nc_row_sound" = "Zvuk";
+"psst_nc_row_lock_screen" = "Zamknutá obrazovka";
+"psst_nc_row_banners" = "Bannery";
+"psst_nc_row_callkit" = "Hovory cez CallKit";
+"psst_nc_row_microphone" = "Mikrofón";
+"psst_nc_row_camera" = "Kamera";
+
+"psst_nc_auth_authorized" = "Zapnuté";
+"psst_nc_auth_provisional" = "Len tiché doručenie — zapnite plné upozornenia";
+"psst_nc_auth_denied" = "Vypnuté v Nastaveniach iOS";
+"psst_nc_auth_not_determined" = "Zatiaľ nepovolené — zapnutím povolíte";
+"psst_nc_needs_notifications" = "Najprv povoľte upozornenia";
+"psst_nc_sound_on" = "Zapnutý — správy zvonia";
+"psst_nc_sound_off" = "Vypnutý — správy prídu potichu";
+"psst_nc_lock_on" = "Zapnuté — upozornenia sa ukážu na zamknutej obrazovke";
+"psst_nc_lock_off" = "Vypnuté — na zamknutej obrazovke sa nič neukáže";
+"psst_nc_banners_temporary" = "Zapnuté — dočasné bannery";
+"psst_nc_banners_persistent" = "Zapnuté — trvalé bannery";
+"psst_nc_banners_off" = "Vypnuté — nič nevyskočí";
+"psst_nc_callkit_on" = "Dostupné — prichádzajúci hovor zvoní ako bežný hovor aj na zamknutom telefóne (CallKit nepotrebuje povolenie)";
+"psst_nc_callkit_region" = "V tomto regióne nedostupné (Apple v Číne CallKit nepovoľuje) — hovory zvonia len v appke psst";
+"psst_nc_callkit_test_ok" = "test zvonenia prešiel";
+"psst_nc_callkit_test_failed" = "test zvonenia zlyhal: %@";
+"psst_nc_av_authorized" = "Prístup povolený";
+"psst_nc_av_denied" = "Prístup zakázaný — zapnite v Nastaveniach iOS";
+"psst_nc_av_restricted" = "Obmedzené (Čas pred obrazovkou alebo správa zariadenia)";
+"psst_nc_av_not_determined" = "Zatiaľ nepovolené — zapnutím povolíte";
+
+"psst_nc_settings_title" = "Otvoriť Nastavenia";
+"psst_nc_settings_open" = "Otvoriť Nastavenia";
+"psst_nc_hint_notifications" = "V Nastaveniach → Hlásenia zapnite „Povoliť hlásenia“.";
+"psst_nc_hint_sound" = "V Nastaveniach → Hlásenia zapnite „Zvuky“.";
+"psst_nc_hint_lock_screen" = "V Nastaveniach → Hlásenia zapnite „Zamknutá obrazovka“.";
+"psst_nc_hint_banners" = "V Nastaveniach → Hlásenia zapnite „Bannery“ (najistejší je štýl „Trvalé“).";
+"psst_nc_hint_callkit" = "CallKit nepotrebuje povolenie.";
+"psst_nc_hint_microphone" = "V Nastaveniach zapnite „Mikrofón“.";
+"psst_nc_hint_camera" = "V Nastaveniach zapnite „Kamera“.";
+"psst_nc_hint_turn_off" = "iOS nedovolí appke toto vypnúť sama — urobíte to v Nastaveniach → psst.";
+
+"psst_nc_request_all" = "Zapnúť všetko potrebné";
+"psst_nc_test_notification" = "Poslať testovacie upozornenie";
+"psst_nc_test_ringtone" = "Otestovať zvonenie";
+"psst_nc_test_notification_body" = "Testovacie upozornenie — takto vyzerá nová správa.";
+"psst_nc_test_notification_sent" = "Testovacie upozornenie príde o 5 sekúnd — teraz môžete zamknúť telefón.";
+"psst_nc_test_notification_silent" = "Zvuk je vypnutý, takže príde potichu.";
+"psst_nc_test_notification_failed" = "Testovacie upozornenie sa nepodarilo naplánovať: %@";
+"psst_nc_test_notification_denied" = "Upozornenia nie sú povolené, testovacie upozornenie sa nemôže zobraziť.";
+"psst_nc_ringtone_caller" = "psst — test zvonenia";
+"psst_nc_ringtone_running" = "Zvoní cez CallKit 5 sekúnd…";
+"psst_nc_ringtone_done" = "Test zvonenia skončil: CallKit prijal testovací hovor a 5 sekúnd zvonil (v tichom režime len vibruje).";
+"psst_nc_ringtone_fallback" = "CallKit nemohol zvoniť (%@) — psst namiesto toho 5 sekúnd prehrá zvuk.";

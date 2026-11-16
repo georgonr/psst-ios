@@ -103,6 +103,8 @@ class SettingsFlowCoordinator: FlowCoordinatorProtocol {
                     startLinkNewDeviceFlow()
                 case .notifications:
                     presentNotificationSettings()
+                case .psstNotificationsCalls:
+                    presentPsstNotificationsCalls(highlightMissing: false)
                 case .secureBackup:
                     startEncryptionSettingsFlow()
                 case .moderationAndSafety:
@@ -305,6 +307,16 @@ class SettingsFlowCoordinator: FlowCoordinatorProtocol {
                                                                                analytics: flowParameters.analytics)
         let coordinator = MediaUploadQualitySettingsScreenCoordinator(parameters: parameters)
         navigationStackCoordinator.push(coordinator)
+    }
+    
+    /// PSST: "Notifications & calls". With `highlightMissing` (automatic check after an update) the missing rows are
+    /// highlighted and a Done button closes the whole settings sheet.
+    func presentPsstNotificationsCalls(highlightMissing: Bool, animated: Bool = true) {
+        let coordinator = PsstNotificationsCallsScreenCoordinator(highlightMissing: highlightMissing,
+                                                                  accountSettings: userSettings.account) { [weak self] in
+            self?.actionsSubject.send(.dismiss)
+        }
+        navigationStackCoordinator.push(coordinator, animated: animated)
     }
     
     private func presentLocationSharingSettings() {

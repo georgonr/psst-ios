@@ -35,6 +35,8 @@ class UserSessionFlowCoordinator: FlowCoordinatorProtocol {
     }
     
     private let onboardingFlowCoordinator: OnboardingFlowCoordinator
+    /// PSST: the automatic "Notifications & calls" check waits until onboarding is dismissed.
+    private var psstIsOnboardingRunning = false
     private let onboardingStackCoordinator: NavigationStackCoordinator
     private let chatsTabFlowCoordinator: ChatsTabFlowCoordinator
     private let chatsTabDetails: NavigationTabCoordinator<HomeTab>.TabDetails
@@ -291,6 +293,7 @@ class UserSessionFlowCoordinator: FlowCoordinatorProtocol {
                 
                 attemptStartingOnboarding()
                 setupSessionVerificationRequestsObserver()
+                psstPresentNotificationsCallsIfNeeded()
             }
             .store(in: &cancellables)
         
@@ -327,6 +330,8 @@ class UserSessionFlowCoordinator: FlowCoordinatorProtocol {
                     navigationTabCoordinator.setFullScreenCoverCoordinator(onboardingStackCoordinator, animated: animated)
                 case .dismiss:
                     navigationTabCoordinator.setFullScreenCoverCoordinator(nil)
+                    psstIsOnboardingRunning = false
+                    psstPresentNotificationsCallsIfNeeded()
                 case .logoutConfirmed:
                     actionsSubject.send(.logout)
                 }
@@ -363,7 +368,21 @@ class UserSessionFlowCoordinator: FlowCoordinatorProtocol {
         
         if onboardingFlowCoordinator.shouldStart {
             clearRoute(animated: false)
+            psstIsOnboardingRunning = true
             onboardingFlowCoordinator.start()
+        }
+    }
+    
+    /// PSST: on the first launch of every version, open Settings → "Notifications & calls" with the missing rows
+    /// highlighted when a required permission is off (PsstNotificationsCallsCheck). Runs after onboarding.
+    private func psstPresentNotificationsCallsIfNeeded() {
+        guard !psstIsOnboardingRunning else { return } // checked again when onboarding is dismissed
+        Task { [weak self] in
+            guard await PsstNotificationsCallsCheck.shouldPresentAutomatically() else { return }
+            try? await Task.sleep(for: .seconds(1))
+            guard let self, stateMachine.state == .tabBar else { return }
+            stateMachine.tryEvent(.showSettingsScreen)
+            settingsFlowCoordinator?.presentPsstNotificationsCalls(highlightMissing: true, animated: false)
         }
     }
     

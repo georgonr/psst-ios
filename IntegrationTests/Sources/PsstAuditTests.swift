@@ -26,9 +26,33 @@ final class PsstAuditTests: XCTestCase {
         add(shot)
     }
 
+    /// One accessibility snapshot instead of a query per element (reading 60 buttons one by one took > 1 min,
+    /// long enough for the SAS verification to time out).
     private func dumpButtons(_ tag: String) {
-        let labels = app.buttons.allElementsBoundByIndex.prefix(60).map { "\($0.identifier)|\($0.label)" }
-        print("PSST-DIAG|\(tag)|" + labels.joined(separator: " ; "))
+        guard let root = try? app.snapshot() else { return }
+        var out: [String] = []
+        func walk(_ s: XCUIElementSnapshot) {
+            if s.elementType == .button || s.elementType == .switch, out.count < 80 { out.append("\(s.identifier)|\(s.label)") }
+            for c in s.children { walk(c) }
+        }
+        walk(root)
+        print("PSST-DIAG|\(tag)|" + out.joined(separator: " ; "))
+    }
+
+    /// Labels of all elements with the given identifier and their descendants, in order, without duplicates.
+    private func labels(withIdentifier identifier: String) -> [String] {
+        guard let root = try? app.snapshot() else { return [] }
+        var out: [String] = []
+        func collect(_ s: XCUIElementSnapshot) {
+            if !s.label.isEmpty, !out.contains(s.label) { out.append(s.label) }
+            for c in s.children { collect(c) }
+        }
+        func walk(_ s: XCUIElementSnapshot) {
+            if s.identifier == identifier { collect(s); return }
+            for c in s.children { walk(c) }
+        }
+        walk(root)
+        return out
     }
 
     /// Taps the first hittable button whose label (or identifier) contains one of the fragments.
@@ -78,6 +102,7 @@ final class PsstAuditTests: XCTestCase {
 
     func testPsstAudit() {
         login()
+        notificationsAndCalls()
         let room = startDirectChat()
         if room { messaging() } else { record("dm", false, "DM sa nepodarilo založiť") }
         verification()
@@ -156,11 +181,19 @@ final class PsstAuditTests: XCTestCase {
     }
 
     /// Back to the room list with a fresh app state (session is kept).
+    private var checkedOncePerVersion = false
+
     private func relaunchToHome() {
         app.terminate()
         app = Application.launch()
         _ = app.buttons[A11yIdentifiers.homeScreen.userAvatar].waitForExistence(timeout: 120)
         allowSystemAlerts()
+        if !checkedOncePerVersion {
+            checkedOncePerVersion = true
+            let again = psstSwitch("notifications").waitForExistence(timeout: 8)
+            print("PSST-AUDIT|notif_settings_once|\(again ? "fail" : "ok")|po reštarte tej istej verzie sa obrazovka \(again ? "znova otvorila" : "už neotvorila (raz za verziu)")")
+            if again { _ = tapAny(["psst_nc-done"], timeout: 3) }
+        }
     }
 
     private func openDirectChat() -> Bool {
@@ -192,16 +225,23 @@ final class PsstAuditTests: XCTestCase {
             record("reaction", ok, ok ? "rýchla reakcia 👍 (doručenie overí partner)" : "reakcia v menu chýba")
         }
 
-        // edit
-        send("ping:e\(id) na upravu")
-        if texts("pong:e\(id)").firstMatch.waitForExistence(timeout: 60), longPress("na upravu") {
-            sleep(1)
-            dumpButtons("edit-menu")
-            let ok = tapAny([A11yIdentifiers.roomScreen.timelineItemActionMenuAction.edit], timeout: 3) || tapContaining(["Edit"], timeout: 3)
-            if ok, typeInComposer(" EDITED") {
-                app.buttons[A11yIdentifiers.roomScreen.sendButton].firstMatch.tap()
+        // edit: our own message, no ping (so the newest item is ours, not the partner's pong)
+        send("na upravu \(id)")
+        if texts("na upravu \(id)").firstMatch.waitForExistence(timeout: 30), longPress("na upravu \(id)") {
+            let editButton = app.buttons[A11yIdentifiers.roomScreen.timelineItemActionMenuAction.edit].firstMatch
+            var ok = editButton.waitForExistence(timeout: 5)
+            if ok {
+                editButton.tap()
+                // edit mode focuses the composer with the cursor at the end of the old text
+                if app.keyboards.firstMatch.waitForExistence(timeout: 6) { app.typeText(" EDITED") } else { ok = typeInComposer(" EDITED") }
+                let sendButton = app.buttons[A11yIdentifiers.roomScreen.sendButton].firstMatch
+                if sendButton.waitForExistence(timeout: 3) { sendButton.tap() } else { _ = tapContaining(["Save", "Send"], timeout: 3) }
+            } else {
+                dumpButtons("edit-menu")
+                _ = tapAny(["Close", "Cancel"], timeout: 2)
             }
-            record("edit", ok, "úprava správy (doručenie overí partner)")
+            let shown = texts("EDITED").firstMatch.waitForExistence(timeout: 30)
+            record("edit", ok && shown, ok ? "vlastná správa → Edit → „… EDITED“ \(shown ? "zobrazená" : "sa nezobrazila") (doručenie m.replace overí partner)" : "v menu vlastnej správy chýba Edit")
         } else { record("edit", false, "správa na úpravu sa nenašla") }
 
         // delete
@@ -245,44 +285,172 @@ final class PsstAuditTests: XCTestCase {
         if !tapAny([A11yIdentifiers.roomScreen.name], timeout: 5) { _ = tapContaining(["QA ios b"], timeout: 5) }
         sleep(2)
         dumpButtons("room-details")
-        if tapAny([A11yIdentifiers.roomDetailsScreen.people], timeout: 5) || tapContaining(["People", "Profile"], timeout: 5) {
-            let member = texts("QA ios b").firstMatch
-            if member.waitForExistence(timeout: 10) { member.tap() }
-            sleep(2)
-            dumpButtons("member-details")
-            let blocked = tapAny([A11yIdentifiers.roomMemberDetailsScreen.ignore], timeout: 3) || tapContaining(["Block"], timeout: 5)
-            sleep(1)
-            _ = tapContaining(["Block", "OK"], timeout: 5)
-            record("block", blocked, "zablokovanie používateľa (ignore) v detaile člena")
-            _ = tapAny([A11yIdentifiers.roomMemberDetailsScreen.unignore, "Unblock user", "Unblock"], timeout: 5)
-            _ = tapAny(["Unblock", "OK"], timeout: 5)
-        } else { record("block", false, "Room details → People sa nenašlo") }
+        // DM details: "Block user" is a row further down (no People list in a DM)
+        let blockButton = app.buttons["Block user"].firstMatch
+        for _ in 0..<5 where !(blockButton.exists && blockButton.isHittable) { app.swipeUp(); sleep(1) }
+        if blockButton.exists, blockButton.isHittable {
+            blockButton.tap()
+            _ = tapAny(["Block"], timeout: 8) // confirmation alert
+            let unblock = app.buttons["Unblock user"].firstMatch
+            let blocked = unblock.waitForExistence(timeout: 40)
+            record("block", blocked, blocked ? "detail DM → Block user → potvrdenie → riadok sa zmenil na „Unblock user“ (ignore uložené na serveri)" : "po potvrdení sa „Unblock user“ neobjavilo")
+            if blocked {
+                unblock.tap()
+                _ = tapAny(["Unblock"], timeout: 8)
+                _ = app.buttons["Block user"].firstMatch.waitForExistence(timeout: 40)
+            }
+        } else {
+            dumpButtons("room-details")
+            record("block", false, "v detaile DM sa „Block user“ nenašlo")
+        }
         relaunchToHome()
         if openDirectChat() { send("VERIFY-NOW \(id)") }
         relaunchToHome()
     }
 
     private func verification() {
-        // the partner signs this account in on a new web session which asks this (verified) device to verify it
-        let req = texts("Verification requested").firstMatch.waitForExistence(timeout: 180)
-        if !req { record("verify_emoji", false, "žiadosť o overenie z nového zariadenia (web) neprišla"); return }
-        dumpButtons("verify-request")
-        _ = tapAny([A11yIdentifiers.sessionVerificationScreen.acceptVerificationRequest], timeout: 5) || tapContaining(["Start verification", "Accept"], timeout: 10)
-        sleep(3)
-        dumpButtons("verify-method")
-        _ = tapContaining(["Start", "Compare emoji"], timeout: 10)
-        var emoji = false
-        for _ in 0..<30 {
-            if app.buttons[A11yIdentifiers.sessionVerificationScreen.acceptChallenge].exists || texts("They match").firstMatch.exists || texts("match").firstMatch.exists { emoji = true; break }
-            sleep(2)
+        // The partner signs this account in on a new web session which asks this (verified) device to verify it.
+        let accept = app.buttons[A11yIdentifiers.sessionVerificationScreen.acceptVerificationRequest].firstMatch
+        guard accept.waitForExistence(timeout: 240) else {
+            dumpButtons("verify-request")
+            record("verify_emoji", false, "žiadosť o overenie z nového zariadenia (web) neprišla")
+            return
         }
-        dumpButtons("verify-emoji")
-        print("PSST-DIAG|verify-tree|" + String(app.debugDescription.prefix(4000)).replacingOccurrences(of: "\n", with: " / "))
-        _ = tapAny([A11yIdentifiers.sessionVerificationScreen.acceptChallenge], timeout: 3) || tapContaining(["They match", "match"], timeout: 10)
-        let done = texts("verified").firstMatch.waitForExistence(timeout: 60) || texts("Verified").firstMatch.waitForExistence(timeout: 5) || texts("complete").firstMatch.waitForExistence(timeout: 5)
+        accept.tap()
+        // SAS is cancelled after 60 s without an event: tap "They match" right away, diagnostics only afterwards.
+        let match = app.buttons[A11yIdentifiers.sessionVerificationScreen.acceptChallenge].firstMatch
+        guard match.waitForExistence(timeout: 90) else {
+            dumpButtons("verify-no-emoji")
+            record("verify_emoji", false, "po prijatí žiadosti sa emoji nezobrazili")
+            return
+        }
+        let emoji = labels(withIdentifier: A11yIdentifiers.sessionVerificationScreen.emojiWrapper)
+        record("verify_emoji_ios", emoji.count == 7 ? true : nil, emoji.joined(separator: " "))
+        match.tap()
+        let complete = app.descendants(matching: .any)[A11yIdentifiers.sessionVerificationScreen.verificationComplete].firstMatch
+        let done = complete.waitForExistence(timeout: 60)
         dumpButtons("verify-done")
-        record("verify_emoji", emoji && done, "iOS (overené zariadenie) overil nové webové prihlásenie cez emoji: emoji \(emoji), hotovo \(done)")
-        _ = tapAny(["Done", "Continue"], timeout: 5)
+        record("verify_emoji", done && emoji.count == 7,
+               "iOS (overené zariadenie) prijal žiadosť nového webového prihlásenia, emoji \(emoji.joined(separator: " ")), „They match“ → \(done ? "Device verified" : "nedokončené")")
+        _ = tapAny(["Done", "Continue", "Close"], timeout: 5)
+    }
+
+    // MARK: - Notifications & calls (PSST screen)
+
+    private func psstSwitch(_ item: String) -> XCUIElement {
+        app.switches["psst_nc-row-\(item)"].firstMatch
+    }
+
+    private func isOn(_ item: String) -> Bool {
+        let s = psstSwitch(item)
+        return s.exists && (s.value as? String) == "1"
+    }
+
+    private func rowStates() -> String {
+        ["notifications", "sound", "lock_screen", "banners", "callkit", "microphone", "camera"].map { item -> String in
+            let s = psstSwitch(item)
+            if !s.exists { app.swipeUp() }
+            return "\(item)=\(isOn(item) ? "on" : "off") (\(s.exists ? s.label : "—"))"
+        }.joined(separator: "; ")
+    }
+
+    private func toggleOn(_ item: String) {
+        let s = psstSwitch(item)
+        for _ in 0..<3 where !(s.exists && s.isHittable) { app.swipeUp() }
+        guard s.exists, !isOn(item) else { return }
+        let inner = s.switches.firstMatch
+        if inner.exists, inner.isHittable { inner.tap() } else { s.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap() }
+    }
+
+    /// Taps "Allow" on every system permission alert that shows up during `seconds`.
+    private func allowAlerts(for seconds: Int) -> Int {
+        var count = 0
+        let deadline = Date().addingTimeInterval(TimeInterval(seconds))
+        while Date() < deadline {
+            if tapAny(["Allow", "OK", "Allow While Using App"], in: springboard, timeout: 1) { count += 1 }
+        }
+        return count
+    }
+
+    private func notificationsAndCalls() {
+        // After login the screen opens by itself (first launch of this version) when something required is missing.
+        let notifications = psstSwitch("notifications")
+        let autoOpened = notifications.waitForExistence(timeout: 30)
+        let banner = app.descendants(matching: .any)["psst_nc-missing_banner"].firstMatch
+        let bannerText = banner.exists ? banner.label : ""
+        if !autoOpened {
+            let avatar = app.buttons[A11yIdentifiers.homeScreen.userAvatar].firstMatch
+            if avatar.waitForExistence(timeout: 10) { avatar.tap() }
+            let row = app.buttons["settings-psst_notifications_calls"].firstMatch
+            if row.waitForExistence(timeout: 10) { row.tap() }
+        }
+        guard notifications.waitForExistence(timeout: 15) else {
+            record("notif_settings", false, "obrazovka Upozornenia a hovory sa neotvorila ani automaticky, ani z Nastavení")
+            return
+        }
+        let before = rowStates()
+        print("PSST-DIAG|nc-before|\(before)")
+        // several at once, one after another: "Turn on everything needed" asks for notifications, then the microphone
+        var alerts = 0
+        let all = app.buttons["psst_nc-request_all"].firstMatch
+        for _ in 0..<3 where !(all.exists && all.isHittable) { app.swipeUp() }
+        if all.exists, all.isHittable {
+            all.tap()
+            alerts = allowAlerts(for: 20)
+        }
+        app.swipeDown()
+        // camera (not required) through its own toggle
+        toggleOn("camera")
+        alerts += allowAlerts(for: 8)
+        sleep(2)
+        let after = rowStates()
+        print("PSST-DIAG|nc-after|\(after)")
+        let required = ["notifications", "sound", "lock_screen", "banners", "microphone"]
+        let requiredOn = required.allSatisfy { isOn($0) }
+        record("notif_settings", autoOpened && !bannerText.isEmpty && requiredOn,
+               "automaticky otvorená po prihlásení: \(autoOpened) (\(bannerText)); pred: \(before); „Zapnúť všetko potrebné“ + Kamera → \(alerts) systémových výziev povolených; po: \(after)")
+
+        // background → foreground: the state is read again and stays consistent
+        XCUIDevice.shared.press(.home)
+        sleep(2)
+        app.activate()
+        let still = psstSwitch("notifications").waitForExistence(timeout: 10) && isOn("notifications") && isOn("microphone")
+        print("PSST-DIAG|nc-foreground|\(still)|\(rowStates())")
+
+        // test notification: same category and sound as a message, shown as a banner while the app is open
+        let testNotification = app.buttons["psst_nc-test_notification"].firstMatch
+        for _ in 0..<3 where !(testNotification.exists && testNotification.isHittable) { app.swipeUp() }
+        if testNotification.exists {
+            testNotification.tap()
+            let banner = springboard.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Test notification' OR label CONTAINS 'Testovacie upozornenie'")).firstMatch
+            let shown = banner.waitForExistence(timeout: 20)
+            let status = app.descendants(matching: .any)["psst_nc-status"].firstMatch
+            record("notif_local_test", shown, "„Send a test notification“ → \(shown ? "banner sa zobrazil (\(banner.label.prefix(80)))" : "banner sa nezobrazil") — \(status.exists ? status.label : "")")
+            sleep(6) // let the banner go away
+        } else { record("notif_local_test", false, "tlačidlo testovacieho upozornenia chýba") }
+
+        // ringing test: CallKit incoming test call for ~5 s (or the in-app sound when CallKit refuses)
+        let ring = app.buttons["psst_nc-test_ringtone"].firstMatch
+        for _ in 0..<3 where !(ring.exists && ring.isHittable) { app.swipeUp() }
+        if ring.exists {
+            ring.tap()
+            let callUI = springboard.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'ringing test'")).firstMatch
+            let callShown = callUI.waitForExistence(timeout: 8)
+            sleep(8)
+            let status = app.descendants(matching: .any)["psst_nc-status"].firstMatch
+            let text = status.exists ? status.label : ""
+            let callKitOK = text.contains("finished") || text.contains("skončil")
+            record("ring_test", callKitOK ? true : (text.isEmpty ? false : nil),
+                   "„Test ringing“ → systémové UI hovoru \(callShown ? "zobrazené" : "nevidno") — \(text)")
+        } else { record("ring_test", false, "tlačidlo testu zvonenia chýba") }
+        _ = tapAny(["Decline", "End"], in: springboard, timeout: 2)
+
+        // close: Done closes the whole sheet when it was opened automatically
+        if !tapAny(["psst_nc-done"], timeout: 3) {
+            app.navigationBars.buttons.element(boundBy: 0).tap()
+            _ = tapAny([A11yIdentifiers.settingsScreen.done, "Close", "Done"], timeout: 3)
+        }
+        _ = app.buttons[A11yIdentifiers.homeScreen.startChat].waitForExistence(timeout: 10)
     }
 
     private func profileAndSettings() {

@@ -1,0 +1,62 @@
+/* PSST strings (table "Psst", PsstL10n). Slovak in sk.lproj/Psst.strings. */
+
+"psst_nc_title" = "Notifications & calls";
+"psst_nc_intro" = "Each row shows the current iOS setting. Turning a row on asks iOS for permission, or opens Settings where iOS only allows the change there.";
+"psst_nc_missing_banner" = "psst needs this for reliable notifications and calls:";
+"psst_nc_missing" = "Missing";
+"psst_nc_section_notifications" = "Notifications";
+"psst_nc_section_calls" = "Calls";
+"psst_nc_section_tests" = "Try it";
+
+"psst_nc_row_notifications" = "Allow notifications";
+"psst_nc_row_sound" = "Sound";
+"psst_nc_row_lock_screen" = "Lock screen";
+"psst_nc_row_banners" = "Banners";
+"psst_nc_row_callkit" = "Calls via CallKit";
+"psst_nc_row_microphone" = "Microphone";
+"psst_nc_row_camera" = "Camera";
+
+"psst_nc_auth_authorized" = "On";
+"psst_nc_auth_provisional" = "Delivered quietly only — turn on for full notifications";
+"psst_nc_auth_denied" = "Off in iOS Settings";
+"psst_nc_auth_not_determined" = "Not allowed yet — turn on to allow";
+"psst_nc_needs_notifications" = "Allow notifications first";
+"psst_nc_sound_on" = "On — messages play a sound";
+"psst_nc_sound_off" = "Off — messages arrive silently";
+"psst_nc_lock_on" = "On — notifications show on the lock screen";
+"psst_nc_lock_off" = "Off — nothing shows on the lock screen";
+"psst_nc_banners_temporary" = "On — temporary banners";
+"psst_nc_banners_persistent" = "On — persistent banners";
+"psst_nc_banners_off" = "Off — nothing pops up";
+"psst_nc_callkit_on" = "Available — an incoming call rings like a phone call, also on the lock screen (CallKit needs no permission)";
+"psst_nc_callkit_region" = "Not available in this region (Apple does not allow CallKit in China) — calls ring only inside psst";
+"psst_nc_callkit_test_ok" = "ringing test passed";
+"psst_nc_callkit_test_failed" = "ringing test failed: %@";
+"psst_nc_av_authorized" = "Access allowed";
+"psst_nc_av_denied" = "Access denied — turn on in iOS Settings";
+"psst_nc_av_restricted" = "Restricted by Screen Time or device management";
+"psst_nc_av_not_determined" = "Not allowed yet — turn on to allow";
+
+"psst_nc_settings_title" = "Open Settings";
+"psst_nc_settings_open" = "Open Settings";
+"psst_nc_hint_notifications" = "In Settings → Notifications, turn on “Allow Notifications”.";
+"psst_nc_hint_sound" = "In Settings → Notifications, turn on “Sounds”.";
+"psst_nc_hint_lock_screen" = "In Settings → Notifications, turn on “Lock Screen”.";
+"psst_nc_hint_banners" = "In Settings → Notifications, turn on “Banners” (the “Persistent” style is the safest).";
+"psst_nc_hint_callkit" = "CallKit needs no permission.";
+"psst_nc_hint_microphone" = "In Settings, turn on “Microphone”.";
+"psst_nc_hint_camera" = "In Settings, turn on “Camera”.";
+"psst_nc_hint_turn_off" = "iOS does not let an app turn this off itself — you can do it in Settings → psst.";
+
+"psst_nc_request_all" = "Turn on everything needed";
+"psst_nc_test_notification" = "Send a test notification";
+"psst_nc_test_ringtone" = "Test ringing";
+"psst_nc_test_notification_body" = "Test notification — this is how a new message looks.";
+"psst_nc_test_notification_sent" = "The test notification arrives in 5 seconds — you can lock the phone now.";
+"psst_nc_test_notification_silent" = "Sound is off, so it will be silent.";
+"psst_nc_test_notification_failed" = "Could not schedule the test notification: %@";
+"psst_nc_test_notification_denied" = "Notifications are not allowed, so no test notification can be shown.";
+"psst_nc_ringtone_caller" = "psst — ringing test";
+"psst_nc_ringtone_running" = "Ringing via CallKit for 5 seconds…";
+"psst_nc_ringtone_done" = "Ringing test finished: CallKit accepted the test call and rang for 5 seconds (in silent mode it only vibrates).";
+"psst_nc_ringtone_fallback" = "CallKit could not ring (%@) — psst plays a sound for 5 seconds instead.";

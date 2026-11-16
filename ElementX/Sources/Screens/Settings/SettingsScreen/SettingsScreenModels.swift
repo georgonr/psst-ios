@@ -19,6 +19,7 @@ enum SettingsScreenViewModelAction {
     case manageAccount(url: URL)
     case linkNewDevice
     case notifications
+    case psstNotificationsCalls // PSST
     case secureBackup
     case moderationAndSafety
     case reportBug
@@ -109,6 +110,7 @@ enum SettingsScreenViewAction {
     case manageAccount(url: URL)
     case linkNewDevice
     case notifications
+    case psstNotificationsCalls // PSST
     case secureBackup
     case moderationAndSafety
     case reportBug
