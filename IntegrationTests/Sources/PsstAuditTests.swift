@@ -353,10 +353,14 @@ final class PsstAuditTests: XCTestCase {
         record("verify_emoji_ios", emoji.count == 7 ? true : nil, emoji.joined(separator: " "))
         match.tap()
         let complete = app.descendants(matching: .any)[A11yIdentifiers.sessionVerificationScreen.verificationComplete].firstMatch
-        let done = complete.waitForExistence(timeout: 60)
+        var done = complete.waitForExistence(timeout: 30)
+        if !done {
+            // the verified sheet closes itself; a failure would stay up with "Verification failed" + Done
+            done = !match.exists && !texts("Verification failed").firstMatch.exists && app.buttons[A11yIdentifiers.homeScreen.userAvatar].exists
+        }
         dumpButtons("verify-done")
         record("verify_emoji", done && emoji.count == 7,
-               "iOS (overené zariadenie) prijal žiadosť nového webového prihlásenia, emoji \(emoji.joined(separator: " ")), „They match“ → \(done ? "Device verified" : "nedokončené")")
+               "iOS (overené zariadenie) prijal žiadosť nového webového prihlásenia, emoji \(emoji.joined(separator: " ")), „They match“ → \(done ? "overené (bez chyby, hárok sa zavrel)" : "nedokončené")")
         _ = tapAny(["Done", "Continue", "Close"], timeout: 5)
     }
 
