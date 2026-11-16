@@ -77,9 +77,11 @@ final class PsstAuditTests: XCTestCase {
         _ = tapAny(["Continue"], in: springboard, timeout: 30)
         let user = safari.textFields["Username"].firstMatch
         guard user.waitForExistence(timeout: 60) else { record("login", false, "MAS formulár sa neotvoril"); return }
-        user.tap(); user.typeText(app.username)
+        user.clearAndTypeText(app.username, app: app)
+        safari.buttons["Done"].firstMatch.tap() // keyboard away so the password field is hittable (as upstream)
         let pw = safari.secureTextFields["Password"].firstMatch
-        pw.tap(); pw.typeText(app.password)
+        pw.clearAndTypeText(app.password, app: app, verifyingValue: false)
+        safari.buttons["Done"].firstMatch.tap()
         _ = tapAny(["Continue"], in: safari, timeout: 5)
         _ = tapAny(["Not Now"], timeout: 5)
         _ = tapAny(["Continue"], in: safari, timeout: 20) // consent
@@ -97,7 +99,7 @@ final class PsstAuditTests: XCTestCase {
         start.tap()
         let search = app.searchFields.firstMatch.exists ? app.searchFields.firstMatch : app.textFields.firstMatch
         guard search.waitForExistence(timeout: 10) else { return false }
-        search.tap(); search.typeText(partner)
+        search.clearAndTypeText(partner, app: app, verifyingValue: false)
         let result = texts(partner).firstMatch
         guard result.waitForExistence(timeout: 30) else { return false }
         result.tap()
@@ -108,7 +110,7 @@ final class PsstAuditTests: XCTestCase {
 
     private func send(_ text: String) {
         let composer = app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch
-        composer.tap(); composer.typeText(text)
+        composer.clearAndTypeText(text, app: app, verifyingValue: false)
         app.buttons[A11yIdentifiers.roomScreen.sendButton].firstMatch.tap()
     }
 
@@ -144,7 +146,7 @@ final class PsstAuditTests: XCTestCase {
             let ok = tapAny([A11yIdentifiers.roomScreen.timelineItemActionMenuAction.edit, "Edit"], timeout: 5)
             if ok {
                 let composer = app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch
-                composer.tap(); composer.typeText(" EDITED")
+                composer.tap(); app.showKeyboardIfNeeded(); composer.typeText(" EDITED")
                 app.buttons[A11yIdentifiers.roomScreen.sendButton].firstMatch.tap()
             }
             record("edit", ok, "úprava správy (doručenie overí partner)")
@@ -219,7 +221,7 @@ final class PsstAuditTests: XCTestCase {
             texts("@\(app.username)").firstMatch.tap()
             let field = app.textFields.firstMatch
             if field.waitForExistence(timeout: 10) {
-                field.tap(); field.typeText(" iOS")
+                field.tap(); app.showKeyboardIfNeeded(); field.typeText(" iOS")
                 let saved = tapAny(["Save"], timeout: 5)
                 record("profile", saved, "zmena zobrazovaného mena v Nastaveniach")
                 _ = tapAny(["Back", "Cancel"], timeout: 3)
