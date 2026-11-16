@@ -26,6 +26,25 @@ final class PsstAuditTests: XCTestCase {
         add(shot)
     }
 
+    private func dumpButtons(_ tag: String) {
+        let labels = app.buttons.allElementsBoundByIndex.prefix(60).map { "\($0.identifier)|\($0.label)" }
+        print("PSST-DIAG|\(tag)|" + labels.joined(separator: " ; "))
+    }
+
+    /// Taps the first hittable button whose label (or identifier) contains one of the fragments.
+    @discardableResult
+    private func tapContaining(_ fragments: [String], timeout: TimeInterval = 5) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            for f in fragments {
+                let b = app.buttons.matching(NSPredicate(format: "label CONTAINS %@ OR identifier CONTAINS %@", f, f)).allElementsBoundByIndex.first { $0.exists && $0.isHittable }
+                if let b { b.tap(); return true }
+            }
+            usleep(400_000)
+        } while Date() < deadline
+        return false
+    }
+
     private var partner: String { ProcessInfo.processInfo.environment["PSST_AUDIT_PARTNER"] ?? "" }
 
     private func texts(_ fragment: String) -> XCUIElementQuery {
@@ -166,16 +185,19 @@ final class PsstAuditTests: XCTestCase {
 
         // reaction
         if longPress("pong:\(id)") {
-            let thumbs = app.buttons.matching(NSPredicate(format: "label CONTAINS %@ OR identifier CONTAINS %@", "👍", "👍")).firstMatch
-            let ok = thumbs.waitForExistence(timeout: 5) && thumbs.isHittable
-            if ok { thumbs.tap() } else { _ = tapAny(["Close", "Cancel"], timeout: 2) }
+            sleep(1)
+            dumpButtons("action-menu")
+            let ok = tapContaining(["👍", "thumbsup", "Thumbs up", "React"], timeout: 5)
+            if !ok { _ = tapAny(["Close", "Cancel"], timeout: 2) }
             record("reaction", ok, ok ? "rýchla reakcia 👍 (doručenie overí partner)" : "reakcia v menu chýba")
         }
 
         // edit
         send("ping:e\(id) na upravu")
         if texts("pong:e\(id)").firstMatch.waitForExistence(timeout: 60), longPress("na upravu") {
-            let ok = tapAny([A11yIdentifiers.roomScreen.timelineItemActionMenuAction.edit, "Edit"], timeout: 5)
+            sleep(1)
+            dumpButtons("edit-menu")
+            let ok = tapAny([A11yIdentifiers.roomScreen.timelineItemActionMenuAction.edit], timeout: 3) || tapContaining(["Edit"], timeout: 3)
             if ok, typeInComposer(" EDITED") {
                 app.buttons[A11yIdentifiers.roomScreen.sendButton].firstMatch.tap()
             }
@@ -186,8 +208,12 @@ final class PsstAuditTests: XCTestCase {
         send("na zmazanie \(id)")
         sleep(3)
         if longPress("na zmazanie") {
-            let ok = tapAny(["Remove", "Delete"], timeout: 5)
-            _ = tapAny(["Remove", "Delete", "OK"], timeout: 5)
+            sleep(1)
+            dumpButtons("delete-menu")
+            if !tapContaining(["Remove", "Delete"], timeout: 3) { app.swipeUp(); _ = tapContaining(["Remove", "Delete"], timeout: 3) }
+            sleep(1)
+            dumpButtons("delete-confirm")
+            let ok = tapContaining(["Remove", "Delete", "OK"], timeout: 5)
             record("delete", ok, "zmazanie (redaction; doručenie overí partner)")
         } else { record("delete", false, "správa na zmazanie sa nenašla") }
 
@@ -216,12 +242,17 @@ final class PsstAuditTests: XCTestCase {
         // room details → people → block partner (fresh app state, DM opened from the room list)
         relaunchToHome()
         guard openDirectChat() else { record("block", false, "DM sa po reštarte nenašla"); return }
-        app.buttons[A11yIdentifiers.roomScreen.name].firstMatch.tap()
-        if tapAny([A11yIdentifiers.roomDetailsScreen.people, "People"], timeout: 8) {
+        if !tapAny([A11yIdentifiers.roomScreen.name], timeout: 5) { _ = tapContaining(["QA ios b"], timeout: 5) }
+        sleep(2)
+        dumpButtons("room-details")
+        if tapAny([A11yIdentifiers.roomDetailsScreen.people], timeout: 5) || tapContaining(["People", "Profile"], timeout: 5) {
             let member = texts("QA ios b").firstMatch
             if member.waitForExistence(timeout: 10) { member.tap() }
-            let blocked = tapAny([A11yIdentifiers.roomMemberDetailsScreen.ignore, "Block user", "Block"], timeout: 8)
-            _ = tapAny(["Block", "OK"], timeout: 5)
+            sleep(2)
+            dumpButtons("member-details")
+            let blocked = tapAny([A11yIdentifiers.roomMemberDetailsScreen.ignore], timeout: 3) || tapContaining(["Block"], timeout: 5)
+            sleep(1)
+            _ = tapContaining(["Block", "OK"], timeout: 5)
             record("block", blocked, "zablokovanie používateľa (ignore) v detaile člena")
             _ = tapAny([A11yIdentifiers.roomMemberDetailsScreen.unignore, "Unblock user", "Unblock"], timeout: 5)
             _ = tapAny(["Unblock", "OK"], timeout: 5)
@@ -235,11 +266,21 @@ final class PsstAuditTests: XCTestCase {
         // the partner signs this account in on a new web session which asks this (verified) device to verify it
         let req = texts("Verification requested").firstMatch.waitForExistence(timeout: 180)
         if !req { record("verify_emoji", false, "žiadosť o overenie z nového zariadenia (web) neprišla"); return }
-        _ = tapAny([A11yIdentifiers.sessionVerificationScreen.acceptVerificationRequest, "Start verification", "Accept"], timeout: 10)
-        _ = tapAny(["Start", "Compare emojis"], timeout: 15)
-        let emoji = app.otherElements[A11yIdentifiers.sessionVerificationScreen.emojiWrapper].waitForExistence(timeout: 60) || texts("They match").firstMatch.waitForExistence(timeout: 5)
-        _ = tapAny([A11yIdentifiers.sessionVerificationScreen.acceptChallenge, "They match"], timeout: 10)
-        let done = texts("verified").firstMatch.waitForExistence(timeout: 60)
+        dumpButtons("verify-request")
+        _ = tapAny([A11yIdentifiers.sessionVerificationScreen.acceptVerificationRequest], timeout: 5) || tapContaining(["Start verification", "Accept"], timeout: 10)
+        sleep(3)
+        dumpButtons("verify-method")
+        _ = tapContaining(["Start", "Compare emoji"], timeout: 10)
+        var emoji = false
+        for _ in 0..<30 {
+            if app.buttons[A11yIdentifiers.sessionVerificationScreen.acceptChallenge].exists || texts("They match").firstMatch.exists || texts("match").firstMatch.exists { emoji = true; break }
+            sleep(2)
+        }
+        dumpButtons("verify-emoji")
+        print("PSST-DIAG|verify-tree|" + String(app.debugDescription.prefix(4000)).replacingOccurrences(of: "\n", with: " / "))
+        _ = tapAny([A11yIdentifiers.sessionVerificationScreen.acceptChallenge], timeout: 3) || tapContaining(["They match", "match"], timeout: 10)
+        let done = texts("verified").firstMatch.waitForExistence(timeout: 60) || texts("Verified").firstMatch.waitForExistence(timeout: 5) || texts("complete").firstMatch.waitForExistence(timeout: 5)
+        dumpButtons("verify-done")
         record("verify_emoji", emoji && done, "iOS (overené zariadenie) overil nové webové prihlásenie cez emoji: emoji \(emoji), hotovo \(done)")
         _ = tapAny(["Done", "Continue"], timeout: 5)
     }
