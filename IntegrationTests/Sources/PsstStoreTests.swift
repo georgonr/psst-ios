@@ -242,8 +242,10 @@ final class PsstStoreTests: XCTestCase {
         let result = texts(partner).firstMatch
         guard result.waitForExistence(timeout: 30) else { return false }
         result.tap()
-        _ = tapAny(["Send invite", "Start chat", "Create", "Start"], timeout: 8)
-        return app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch.waitForExistence(timeout: 60)
+        let composer = app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch
+        if composer.waitForExistence(timeout: 10) { return true }   // an existing DM opens directly
+        _ = tapAny(["Send invite", "Create", "Start"], timeout: 8)
+        return composer.waitForExistence(timeout: 60)
     }
 
     private func send(_ text: String) {
