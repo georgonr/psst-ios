@@ -272,8 +272,11 @@ final class PsstStoreTests: XCTestCase {
                 sleep(1)
                 if !tapContaining(["Report content"], timeout: 2) { app.swipeUp(); sleep(1) }
                 if app.navigationBars.staticTexts["Report content"].exists || tapContaining(["Report content", "Report"], timeout: 6) {
-                    let reason = app.textViews.firstMatch.exists ? app.textViews.firstMatch : app.textFields.firstMatch
-                    if reason.waitForExistence(timeout: 10) { reason.tap(); reason.typeText("Spam from iOS test (QA)") }
+                    sleep(2)
+                    // the room composer stays in the hierarchy behind the sheet → take the other text view
+                    let notComposer = NSPredicate(format: "identifier != %@", A11yIdentifiers.roomScreen.messageComposer)
+                    let reason = app.textViews.matching(notComposer).firstMatch.exists ? app.textViews.matching(notComposer).firstMatch : app.textFields.firstMatch
+                    if reason.waitForExistence(timeout: 10) { reason.tap(); sleep(1); reason.typeText("Spam from iOS test (QA)") }
                     sleep(1)
                     saveShot("review-report-content")
                     let sent = tapAny(["Send"], timeout: 8)
