@@ -275,8 +275,13 @@ final class PsstStoreTests: XCTestCase {
                     sleep(2)
                     // the room composer stays in the hierarchy behind the sheet → take the other text view
                     let notComposer = NSPredicate(format: "identifier != %@", A11yIdentifiers.roomScreen.messageComposer)
-                    let reason = app.textViews.matching(notComposer).firstMatch.exists ? app.textViews.matching(notComposer).firstMatch : app.textFields.firstMatch
-                    if reason.waitForExistence(timeout: 10) { reason.tap(); sleep(1); reason.typeText("Spam from iOS test (QA)") }
+                    let visible = (app.textViews.matching(notComposer).allElementsBoundByIndex + app.textFields.allElementsBoundByIndex)
+                        .filter { $0.exists && $0.frame.height > 10 && $0.frame.width > 50 }
+                    print("PSST-DIAG|report-fields|\(visible.map { "\($0.elementType.rawValue) \($0.frame) \($0.identifier)" })")
+                    if let reason = visible.last {
+                        reason.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap(); sleep(1)
+                        if app.keyboards.firstMatch.waitForExistence(timeout: 5) { app.typeText("Spam from iOS test (QA)") }
+                    }
                     sleep(1)
                     saveShot("review-report-content")
                     let sent = tapAny(["Send"], timeout: 8)
