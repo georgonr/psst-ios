@@ -150,9 +150,10 @@ final class PsstStoreTests: XCTestCase {
         let home = app.buttons[A11yIdentifiers.homeScreen.userAvatar]
         let deadline = Date().addingTimeInterval(300)
         var usedKey = false
+        var homeSince: Date?
         while Date() < deadline {
             allowSystemAlerts()
-            if let key = recoveryKey, !usedKey, tapContaining(["Enter recovery key", "Use recovery key", "recovery key"], timeout: 1) {
+            if let key = recoveryKey, !usedKey, tapContaining(["Enter recovery key", "Enter your recovery key", "Use recovery key", "recovery key"], timeout: 1) {
                 let field = app.secureTextFields[A11yIdentifiers.secureBackupRecoveryKeyScreen.recoveryKeyField].firstMatch.exists
                     ? app.secureTextFields[A11yIdentifiers.secureBackupRecoveryKeyScreen.recoveryKeyField].firstMatch
                     : app.textFields[A11yIdentifiers.secureBackupRecoveryKeyScreen.recoveryKeyField].firstMatch
@@ -167,7 +168,13 @@ final class PsstStoreTests: XCTestCase {
             }
             if tapAny(["psst_nc-done"], timeout: 1) { sleep(1) }
             _ = tapAny(["Not now", "Close", "Remind me later", "Skip", "Later"], timeout: 1)
-            if home.exists, home.isHittable { return true }
+            // with a recovery key: the home screen can come first and the "Enter your recovery key" banner a bit later
+            // (iPad) — wait for it up to 90 s after home appeared
+            if home.exists, home.isHittable {
+                if recoveryKey == nil || usedKey { return true }
+                if homeSince == nil { homeSince = Date() }
+                if let t = homeSince, Date().timeIntervalSince(t) > 90 { record("recovery_key", false, "výzva na kľúč na obnovenie sa neobjavila"); return true }
+            }
             usleep(800_000)
         }
         diag("reach-home")
@@ -261,7 +268,8 @@ final class PsstStoreTests: XCTestCase {
                 let bubble = texts("pong:\(id)").allElementsBoundByIndex.last { $0.exists && $0.isHittable } ?? pong
                 bubble.press(forDuration: 1.2)
                 sleep(1)
-                if tapContaining(["Report content", "Report"], timeout: 6) {
+                if !tapContaining(["Report content"], timeout: 2) { app.swipeUp(); sleep(1) }
+                if app.navigationBars.staticTexts["Report content"].exists || tapContaining(["Report content", "Report"], timeout: 6) {
                     let reason = app.textViews.firstMatch.exists ? app.textViews.firstMatch : app.textFields.firstMatch
                     if reason.waitForExistence(timeout: 10) { reason.tap(); reason.typeText("Spam from iOS test (QA)") }
                     sleep(1)
@@ -326,9 +334,12 @@ final class PsstStoreTests: XCTestCase {
                 sleep(8)
                 let roots: [XCUIApplication] = [app, safari]
                 var found = false
-                for _ in 0..<6 where !found {
-                    for r in roots where tapContaining(["Delete account"], in: r, timeout: 2) { found = true; break }
-                    if !found { for r in roots { r.swipeUp() }; sleep(1) }
+                for _ in 0..<8 where !found {
+                    for r in roots {
+                        let el = r.descendants(matching: .any).matching(NSPredicate(format: "label == 'Delete account'")).firstMatch
+                        if el.exists, el.frame.height > 0 { el.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap(); found = true; break }
+                    }
+                    if !found { safari.webViews.firstMatch.exists ? safari.webViews.firstMatch.swipeUp() : safari.swipeUp(); sleep(1) }
                 }
                 saveShot("review-delete-account")
                 if found {
@@ -342,7 +353,11 @@ final class PsstStoreTests: XCTestCase {
                     }
                     saveShot("review-delete-confirm")
                     var confirmed = false
-                    for r in roots where tapContaining(["Delete account", "Delete", "Confirm"], in: r, timeout: 4) { confirmed = true; break }
+                    for r in roots {
+                        let b = r.descendants(matching: .any).matching(NSPredicate(format: "label IN {'Delete account', 'Delete', 'Confirm', 'Yes, delete'} AND elementType == %d", XCUIElement.ElementType.button.rawValue)).allElementsBoundByIndex.last
+                        if let b, b.exists { b.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap(); confirmed = true; break }
+                    }
+                    if !confirmed { for r in roots { print("PSST-DIAG|mas-confirm|\(r.descendants(matching: .any).allElementsBoundByIndex.prefix(80).map { "\($0.elementType.rawValue):\($0.label)" }.filter { !$0.hasSuffix(":") }.joined(separator: " ; "))") } }
                     sleep(8)
                     saveShot("review-deleted")
                     record("delete_account", confirmed, "Nastavenia → \(label) → stránka účtu → Delete account → potvrdenie (\(confirmed ? "odoslané" : "potvrdenie sa nenašlo"); výsledok overí server)")
