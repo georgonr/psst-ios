@@ -50,7 +50,7 @@ class AuthenticationStartScreenViewModel: AuthenticationStartScreenViewModelType
         let showQRCodeLoginButton: Bool
         if !appSettings.allowOtherAccountProviders {
             // PSST: upstream hides "Create account" when custom providers are disallowed. psst is locked to
-            // chat.macet.eu whose MAS allows registration (with an invite token), so the button is shown and opens
+            // psst.pro whose MAS allows registration (with an invite token), so the button is shown and opens
             // the MAS registration page (OAuth prompt=create) of that single provider directly - no server picker.
             serverNameOrBaseURL = appSettings.accountProviders.count == 1 ? appSettings.accountProviders[0].serverNameOrBaseURL : nil
             showCreateAccountButton = appSettings.showCreateAccountButton && serverNameOrBaseURL != nil

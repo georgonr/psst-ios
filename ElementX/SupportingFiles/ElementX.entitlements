@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:app.macet.eu</string>
+		<string>applinks:app.psst.pro</string>
 	</array>
 	<key>com.apple.developer.usernotifications.communication</key>
 	<true/>

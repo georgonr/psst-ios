@@ -1,5 +1,5 @@
 //
-// PSST feature audit on the iOS simulator against production chat.macet.eu (docs/FEATURE-MATRIX.md, DECISIONS D64).
+// PSST feature audit on the iOS simulator against production psst.pro (homeserver chat.psst.pro) (docs/FEATURE-MATRIX.md, DECISIONS D64).
 //
 // The partner is Element Web on the CI runner (scripts/audit/ios-partner.mjs): it joins invites, answers
 // "ping:<x>" with "pong:<x>", records everything the app sends, and on "VERIFY-NOW" signs the same account in on a
@@ -129,11 +129,11 @@ final class PsstAuditTests: XCTestCase {
     private func login() {
         let signIn = app.buttons[A11yIdentifiers.authenticationStartScreen.signIn]
         guard signIn.waitForExistence(timeout: 30) else { record("login", false, "chýba Sign in"); return }
-        record("locked_server", app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'chat.macet.eu'")).count > 0 || signIn.label.contains("chat.macet.eu"),
+        record("locked_server", app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'psst.pro'")).count > 0 || signIn.label.contains("psst.pro"),
                "úvodná obrazovka: \(signIn.label)")
         signIn.tap()
         _ = tapAny([A11yIdentifiers.serverConfirmationScreen.continue, "Continue"], timeout: 8)
-        // ASWebAuthenticationSession: "psst wants to use chat.macet.eu to sign in"
+        // ASWebAuthenticationSession: "psst wants to use chat.psst.pro to sign in"
         _ = tapAny(["Continue"], in: springboard, timeout: 30)
         let user = safari.textFields["Username"].firstMatch
         guard user.waitForExistence(timeout: 60) else { record("login", false, "MAS formulár sa neotvoril"); return }
