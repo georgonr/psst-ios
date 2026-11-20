@@ -505,6 +505,8 @@ final class PsstStoreTests: XCTestCase {
         _ = tapAny(["Done"], in: safari, timeout: 2)
         _ = tapAny(["Continue"], in: safari, timeout: 5)
         sleep(4)
+        _ = tapAny(["Not Now"], in: safari, timeout: 3) || tapAny(["Not Now"], in: springboard, timeout: 2) || tapAny(["Not Now"], timeout: 2)
+        sleep(1)
         if safari.exists, safari.buttons["Continue"].firstMatch.exists { masBrand("suhlas") }
         _ = tapAny(["Not Now"], timeout: 3)
         _ = tapAny(["Continue"], in: safari, timeout: 20)
@@ -518,6 +520,14 @@ final class PsstStoreTests: XCTestCase {
         for _ in 0..<4 where !(manage.exists && manage.isHittable) { app.swipeDown(); sleep(1) }
         guard manage.exists, manage.isHittable else { diag("settings"); record("brand_ucet", false, "Manage account sa nenašlo"); return }
         manage.tap()
+        sleep(3)
+        // system prompt „<app> Wants to Use chat.psst.pro to Sign In“ — the app name shown there must be psst
+        let prompt = springboard.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Wants to Use'")).firstMatch
+        if prompt.waitForExistence(timeout: 8) {
+            let label = prompt.label
+            record("brand_ios_prompt", label.contains("psst") && !label.contains("Element"), label)
+            _ = tapAny(["Continue"], in: springboard, timeout: 5)
+        }
         sleep(8)
         masBrand("ucet")
     }
