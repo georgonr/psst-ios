@@ -7,6 +7,11 @@
 //                         workflow) to PSST_SHOT_DIR: 1-chats, 2-group, 3-chat, 4-room-details.
 //   testStoreReview       with the CI partner (scripts/audit/ios-partner.mjs): Report content on a partner message,
 //                         Report room on a group the partner creates, and Settings → Manage account → Delete account.
+//   testRegistrationScreen  (D88) signed out: "Create account" opens the MAS registration page without an invite
+//                         code field, with hCaptcha and the mandatory "18+ and Terms" checkbox.
+//   testExactNameSearch   (D88) the user directory is off: a part of a name finds nobody, the short account name
+//                         (PSST_EXACT_TARGET, e.g. qa-d88b) and the full @name:psst.pro find the person
+//                         (PSST_EXACT_TARGET_NAME); a DM invite is sent to them.
 //
 // Every check prints "PSST-STORE|<id>|<ok|fail|na>|<note>". Test accounts only (qa-*), never real users.
 //
@@ -377,5 +382,72 @@ final class PsstStoreTests: XCTestCase {
                 }
             } else { diag("settings"); record("delete_account", false, "v Nastaveniach chýba Manage account") }
         }
+    }
+
+    // MARK: - D88: open registration, exact-name search
+
+    func testRegistrationScreen() {
+        let create = app.buttons["Create account"].firstMatch
+        guard create.waitForExistence(timeout: 30) else { diag("start"); record("register_button", false, "chýba Create account"); return }
+        record("register_button", true, "Create account na úvodnej obrazovke")
+        create.tap()
+        _ = tapAny([A11yIdentifiers.serverConfirmationScreen.continue, "Continue"], timeout: 8)
+        _ = tapAny(["Continue"], in: springboard, timeout: 30)
+        let user = safari.textFields["Username"].firstMatch
+        guard user.waitForExistence(timeout: 60) else { record("register_page", false, "registračná stránka MAS sa neotvorila"); return }
+        sleep(4)
+        let all = safari.descendants(matching: .any)
+        let tokenField = all.matching(NSPredicate(format: "label CONTAINS[c] 'token' OR label CONTAINS[c] 'invite' OR label CONTAINS[c] 'pozv'")).count
+        record("register_page", tokenField == 0, "MAS registrácia: meno, heslo; pole na kód: \(tokenField)")
+        if !all.matching(NSPredicate(format: "label CONTAINS[c] 'hCaptcha'")).firstMatch.exists {
+            safari.swipeUp(); sleep(2)
+        }
+        let captcha = all.matching(NSPredicate(format: "label CONTAINS[c] 'hCaptcha'")).firstMatch.waitForExistence(timeout: 30)
+        record("register_hcaptcha", captcha, captcha ? "hCaptcha zobrazená" : "hCaptcha sa nenašla")
+        let terms = all.matching(NSPredicate(format: "label CONTAINS[c] '18 years' OR label CONTAINS[c] '18 rokov'")).firstMatch
+        record("register_terms_18", terms.exists, terms.exists ? String(terms.label.prefix(90)) : "text súhlasu 18+ sa nenašiel")
+        saveShot("register-screen")
+    }
+
+    private var exactTarget: String { env["PSST_EXACT_TARGET"] ?? "" }
+    private var exactTargetName: String { env["PSST_EXACT_TARGET_NAME"] ?? "" }
+
+    /// Types `query` into the start-chat search and reports whether the target's display name shows up.
+    private func searchStartChat(_ query: String, expectFound: Bool) -> XCUIElement? {
+        let search = app.searchFields.firstMatch.exists ? app.searchFields.firstMatch : app.textFields.firstMatch
+        guard search.waitForExistence(timeout: 10) else { return nil }
+        search.clearAndTypeText(query, app: app, verifyingValue: false)
+        let result = texts(exactTargetName).firstMatch
+        _ = result.waitForExistence(timeout: expectFound ? 30 : 8)
+        return result.exists ? result : nil
+    }
+
+    func testExactNameSearch() {
+        guard !exactTarget.isEmpty, !exactTargetName.isEmpty else { record("exact_env", false, "chýba PSST_EXACT_TARGET(_NAME)"); return }
+        guard login(), reachHome(recoveryKey: nil) else { record("home", false, "prihlásenie zlyhalo"); return }
+        let start = app.buttons[A11yIdentifiers.homeScreen.startChat]
+        guard start.waitForExistence(timeout: 20) else { record("start_chat", false, "chýba Start chat"); return }
+        start.tap()
+        let partial = String(exactTarget.dropLast(2))
+        let p = searchStartChat(partial, expectFound: false)
+        record("search_partial", p == nil, "„\(partial)“ → \(p == nil ? "nikto" : "našlo \(exactTargetName)")")
+        saveShot("search-partial")
+        guard let short = searchStartChat(exactTarget, expectFound: true) else {
+            diag("search-short"); record("search_short", false, "„\(exactTarget)“ nič nenašlo"); return
+        }
+        record("search_short", true, "„\(exactTarget)“ → \(exactTargetName)")
+        saveShot("search-short")
+        let full = "@\(exactTarget):psst.pro"
+        let f = searchStartChat(full, expectFound: true)
+        record("search_full", f != nil, "„\(full)“ → \(f == nil ? "nič" : exactTargetName)")
+        guard let target = searchStartChat(exactTarget, expectFound: true) ?? Optional(short) else { return }
+        target.tap()
+        let composer = app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch
+        if !composer.waitForExistence(timeout: 10) { _ = tapAny(["Send invite", "Create", "Start"], timeout: 8) }
+        let ok = composer.waitForExistence(timeout: 60)
+        if ok { send("Ahoj z iOS (D88)") }
+        sleep(5)
+        record("dm_invite", ok, ok ? "rozhovor vytvorený, žiadosť odoslaná \(full)" : "rozhovor sa nevytvoril")
+        saveShot("dm-created")
     }
 }
