@@ -27,7 +27,7 @@ struct UserDiscoveryServiceTest {
     func queryShowingResults() async {
         clientProxy.searchUsersSearchTermLimitReturnValue = .success(.init(results: [UserProfile.mockAlice], limited: true))
         
-        let results = await (try? search(query: "AAA").get()) ?? []
+        let results = await (try? search(query: "A A").get()) ?? []
         assertSearchResults(results, toBe: 1)
     }
     
@@ -35,7 +35,7 @@ struct UserDiscoveryServiceTest {
     func ownerIsFiltered() async {
         clientProxy.searchUsersSearchTermLimitReturnValue = .success(.init(results: [UserProfile(userID: "@foo:matrix.org")], limited: true))
         
-        let results = await (try? search(query: "AAA").get()) ?? []
+        let results = await (try? search(query: "A A").get()) ?? []
         assertSearchResults(results, toBe: 0)
     }
     
@@ -44,7 +44,8 @@ struct UserDiscoveryServiceTest {
         clientProxy.searchUsersSearchTermLimitReturnValue = .success(.init(results: searchResults, limited: true))
         clientProxy.profileForReturnValue = .success(.init(userID: "@alice:matrix.org"))
         
-        let results = await (try? search(query: "AAA").get()) ?? []
+        // PSST (D88): a query that is not an account name (contains a space) never triggers a profile lookup
+        let results = await (try? search(query: "A A").get()) ?? []
         assertSearchResults(results, toBe: 3)
         #expect(!clientProxy.profileForCalled)
     }
@@ -119,6 +120,28 @@ struct UserDiscoveryServiceTest {
         let firstUserID = results.first?.id
         #expect(firstUserID == "@a:b.com")
         #expect(clientProxy.profileForCalled)
+    }
+    
+    @Test
+    func psstBareAccountNameLooksUpExactUser() async {
+        clientProxy.searchUsersSearchTermLimitReturnValue = .success(.init(results: [], limited: false))
+        clientProxy.profileForReturnValue = .success(.init(userID: "@jana:matrix.org", displayName: "Jana"))
+        
+        let results = await (try? search(query: "Jana").get()) ?? []
+        
+        assertSearchResults(results, toBe: 1)
+        #expect(clientProxy.profileForReceivedUserID == "@jana:matrix.org")
+    }
+    
+    @Test
+    func psstBareAccountNameWithoutProfileShowsNothing() async {
+        clientProxy.searchUsersSearchTermLimitReturnValue = .success(.init(results: [], limited: false))
+        clientProxy.profileForReturnValue = .failure(.sdkError(ClientProxyMockError.generic))
+        
+        let results = await (try? search(query: "@nobody").get()) ?? []
+        
+        assertSearchResults(results, toBe: 0)
+        #expect(clientProxy.profileForReceivedUserID == "@nobody:matrix.org")
     }
     
     // MARK: - Private

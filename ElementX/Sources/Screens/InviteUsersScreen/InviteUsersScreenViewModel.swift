@@ -227,7 +227,8 @@ class InviteUsersScreenViewModel: InviteUsersScreenViewModelType, InviteUsersScr
     }
     
     private func fetchUsers() {
-        guard searchQuery.count >= 3 else {
+        // PSST (D88): search from the first character — a short account name (e.g. "jo") is looked up exactly
+        guard searchQuery.count >= 1 else {
             state.usersSection = .init(type: .suggestions, users: suggestedUsers)
             return
         }

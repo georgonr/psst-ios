@@ -47,6 +47,13 @@ final class UserDiscoveryService: UserDiscoveryServiceProtocol {
     }
     
     private func profileIfPossible(with searchQuery: String) async -> UserProfile? {
+        // PSST (D88): the server's user directory is off (no listing, no partial-name search). A bare account name
+        // ("jana" or "@jana") is looked up as the exact user @jana:<our server> and shown only if that profile exists.
+        if let exactUserID = psstExactUserID(for: searchQuery) {
+            guard exactUserID != clientProxy.userID else { return nil }
+            return try? await clientProxy.profile(for: exactUserID).get()
+        }
+        
         guard searchQuery.isMatrixIdentifier, searchQuery != clientProxy.userID else {
             return nil
         }
@@ -55,6 +62,22 @@ final class UserDiscoveryService: UserDiscoveryServiceProtocol {
         
         // fallback to a "local profile" if the profile api fails
         return getProfileResult ?? .init(userID: searchQuery)
+    }
+    
+    private func psstExactUserID(for query: String) -> String? {
+        var localpart = query.trimmingCharacters(in: .whitespaces).lowercased()
+        if localpart.hasPrefix("@") {
+            localpart.removeFirst()
+        }
+        guard !localpart.isEmpty, localpart.range(of: "^[a-z0-9._=/+-]+$", options: .regularExpression) != nil else {
+            return nil
+        }
+        let serverName = clientProxy.userIDServerName ?? clientProxy.userID.split(separator: ":", maxSplits: 1).dropFirst().first.map(String.init)
+        guard let serverName, !serverName.isEmpty else {
+            return nil
+        }
+        let userID = "@\(localpart):\(serverName)"
+        return userID.isMatrixIdentifier ? userID : nil
     }
     
     private func filterAccountOwner(_ profiles: [UserProfile]) -> [UserProfile] {
