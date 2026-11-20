@@ -51,6 +51,8 @@ targets:
         UILaunchScreen:
           UIColorName: colors/background-color
         CFBundleDisplayName: $(APP_DISPLAY_NAME)
+        # PSST (D89): iOS shows CFBundleName in the system sign-in prompt („… Wants to Use chat.psst.pro to Sign In“)
+        CFBundleName: $(APP_DISPLAY_NAME)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         # PSST: build date (YYYY-MM-DD) shown with the build number in Settings (BUILD.md "Verzovanie")
