@@ -11,6 +11,9 @@
 //                         code field, with hCaptcha and the mandatory "18+ and Terms" checkbox.
 //   testMasBranding       (D89) the MAS pages (registration, sign-in, account management) show the psst brand:
 //                         title „psst – …“, the psst logo text, no „matrix-authentication-service“ / „Element“.
+//   testReviewAccount     (D90) Release build: the review account signs in (the system sign-in prompt names „psst“),
+//                         recovery key, the encrypted DM and group are readable, a chat by typing „review-partner“,
+//                         then signs out again (no device left on the review account).
 //   testExactNameSearch   (D88) the user directory is off: a part of a name finds nobody, the short account name
 //                         (PSST_EXACT_TARGET, e.g. qa-d88b) and the full @name:psst.pro find the person
 //                         (PSST_EXACT_TARGET_NAME); a DM invite is sent to them.
@@ -530,5 +533,83 @@ final class PsstStoreTests: XCTestCase {
         }
         sleep(8)
         masBrand("ucet")
+    }
+
+    // MARK: - D90: review account on the Release build
+
+    /// iOS „Save Password?“ sheet (Safari view or springboard) — dismiss it in the test, not in the app.
+    private func dismissSavePassword() {
+        for root in [safari, springboard, app!] {
+            let b = root.buttons["Not Now"].firstMatch
+            if b.exists, b.isHittable { b.tap(); sleep(1); return }
+        }
+    }
+
+    func testReviewAccount() {
+        let signIn = app.buttons[A11yIdentifiers.authenticationStartScreen.signIn]
+        guard signIn.waitForExistence(timeout: 30) else { record("review_start", false, "chýba Sign in"); return }
+        signIn.tap()
+        _ = tapAny([A11yIdentifiers.serverConfirmationScreen.continue, "Continue"], timeout: 8)
+        let prompt = springboard.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Wants to Use'")).firstMatch
+        if prompt.waitForExistence(timeout: 30) {
+            let label = prompt.label
+            record("ios_signin_prompt", label.contains("psst") && !label.contains("Element"), label)
+            saveShot("review-signin-prompt")
+        } else { record("ios_signin_prompt", nil, "systémový dialóg sa neukázal") }
+        _ = tapAny(["Continue"], in: springboard, timeout: 10)
+        let user = safari.textFields["Username"].firstMatch
+        guard user.waitForExistence(timeout: 60) else { record("review_login", false, "MAS formulár sa neotvoril"); return }
+        let pw = safari.secureTextFields["Password"].firstMatch
+        setField(user, app.username, secure: false)
+        _ = tapAny(["Done"], in: safari, timeout: 2)
+        setField(pw, app.password, secure: true)
+        _ = tapAny(["Done"], in: safari, timeout: 2)
+        _ = tapAny(["Continue"], in: safari, timeout: 5)
+        sleep(4)
+        dismissSavePassword()
+        _ = tapAny(["Continue"], in: safari, timeout: 20)
+        dismissSavePassword()
+        allowSystemAlerts()
+        guard reachHome(recoveryKey: env["PSST_RECOVERY_KEY"]) else { record("review_login", false, "domovská obrazovka sa neukázala"); return }
+        record("review_login", true, "prihlásený \(app.username)")
+        for room in ["Review Partner", "Weekend trip"] {
+            guard openRoom(room) else { record("room_\(room)", false, "miestnosť sa nenašla/neotvorila"); diag("rooms"); continue }
+            sleep(6)
+            let undecryptable = texts("Unable to decrypt").count + texts("Waiting for this message").count
+            let bubbles = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'timeline_item'")).count
+            record("room_\(room)", undecryptable == 0, "otvorená, nedešifrované \(undecryptable), prvkov časovej osi \(bubbles)")
+            saveShot("review-room-\(room.replacingOccurrences(of: " ", with: "-"))")
+            back()
+        }
+        // a chat by typing the account name
+        let start = app.buttons[A11yIdentifiers.homeScreen.startChat]
+        if start.waitForExistence(timeout: 20) {
+            start.tap()
+            let search = app.searchFields.firstMatch.exists ? app.searchFields.firstMatch : app.textFields.firstMatch
+            if search.waitForExistence(timeout: 10) {
+                search.clearAndTypeText("review-partner", app: app, verifyingValue: false)
+                let hit = texts("Review Partner").firstMatch
+                if hit.waitForExistence(timeout: 30) {
+                    hit.tap()
+                    let composer = app.textViews[A11yIdentifiers.roomScreen.messageComposer].firstMatch
+                    if !composer.waitForExistence(timeout: 10) { _ = tapAny(["Send invite", "Create", "Start"], timeout: 8) }
+                    record("start_chat_review_partner", composer.waitForExistence(timeout: 40), "„review-partner“ → Review Partner → rozhovor")
+                    saveShot("review-start-chat")
+                    back()
+                } else { record("start_chat_review_partner", false, "„review-partner“ nič nenašlo") }
+            }
+        }
+        // sign out again: no test device left on the review account
+        let avatar = app.buttons[A11yIdentifiers.homeScreen.userAvatar]
+        if avatar.waitForExistence(timeout: 10) {
+            avatar.tap(); sleep(2)
+            let logout = app.buttons[A11yIdentifiers.settingsScreen.logout].firstMatch
+            for _ in 0..<6 where !(logout.exists && logout.isHittable) { app.swipeUp(); sleep(1) }
+            if logout.exists, logout.isHittable {
+                logout.tap(); sleep(2)
+                for _ in 0..<3 { _ = tapAny(["Sign out", "Sign out anyway", "Remove this device", "Remove"], timeout: 4); sleep(2) }
+                record("review_logout", app.buttons[A11yIdentifiers.authenticationStartScreen.signIn].waitForExistence(timeout: 30), "odhlásený")
+            } else { record("review_logout", false, "Sign out sa nenašlo") }
+        }
     }
 }
