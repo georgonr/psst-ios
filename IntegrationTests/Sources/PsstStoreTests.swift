@@ -460,15 +460,16 @@ final class PsstStoreTests: XCTestCase {
 
     private func masBrand(_ name: String) {
         sleep(4)
+        // labels from a static snapshot (indexing live elements is flaky while the page changes)
         var labels: [String] = []
         var title = ""
-        labels += safari.descendants(matching: .any).allElementsBoundByIndex.prefix(250).map(\.label).filter { !$0.isEmpty }
-        for root in [safari, app!] {
-            let web = root.webViews.firstMatch
-            guard web.exists else { continue }
-            if root == app { labels += web.descendants(matching: .any).allElementsBoundByIndex.prefix(250).map(\.label).filter { !$0.isEmpty } }
-            if title.isEmpty, web.label.contains("psst") || web.label.contains("matrix") { title = web.label }
+        func walk(_ n: XCUIElementSnapshot) {
+            if !n.label.isEmpty { labels.append(n.label) }
+            if n.elementType == .webView, title.isEmpty, n.label.contains("psst") || n.label.contains("matrix") { title = n.label }
+            n.children.forEach(walk)
         }
+        if let snap = try? safari.snapshot() { walk(snap) }
+        if app.webViews.firstMatch.exists, let snap = try? app.webViews.firstMatch.snapshot() { walk(snap) }
         let joined = labels.joined(separator: " ; ")
         let forbidden = ["matrix-authentication-service", "Matrix Authentication Service", "Element"].first { joined.contains($0) }
         let brand = labels.contains("psst")
