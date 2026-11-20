@@ -426,7 +426,10 @@ final class PsstStoreTests: XCTestCase {
 
     func testExactNameSearch() {
         guard !exactTarget.isEmpty, !exactTargetName.isEmpty else { record("exact_env", false, "chýba PSST_EXACT_TARGET(_NAME)"); return }
-        guard login(), reachHome(recoveryKey: nil) else { record("home", false, "prihlásenie zlyhalo"); return }
+        // already signed in by an earlier test in this run (testMasBranding) → go on from the room list
+        if !app.buttons[A11yIdentifiers.homeScreen.userAvatar].waitForExistence(timeout: 8) {
+            guard login(), reachHome(recoveryKey: nil) else { record("home", false, "prihlásenie zlyhalo"); return }
+        }
         let start = app.buttons[A11yIdentifiers.homeScreen.startChat]
         guard start.waitForExistence(timeout: 20) else { record("start_chat", false, "chýba Start chat"); return }
         start.tap()
