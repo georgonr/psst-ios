@@ -9,6 +9,8 @@
 //                         Report room on a group the partner creates, and Settings → Manage account → Delete account.
 //   testRegistrationScreen  (D88) signed out: "Create account" opens the MAS registration page without an invite
 //                         code field, with hCaptcha and the mandatory "18+ and Terms" checkbox.
+//   testMasBranding       (D89) the MAS pages (registration, sign-in, account management) show the psst brand:
+//                         title „psst – …“, the psst logo text, no „matrix-authentication-service“ / „Element“.
 //   testExactNameSearch   (D88) the user directory is off: a part of a name finds nobody, the short account name
 //                         (PSST_EXACT_TARGET, e.g. qa-d88b) and the full @name:psst.pro find the person
 //                         (PSST_EXACT_TARGET_NAME); a DM invite is sent to them.
@@ -449,5 +451,70 @@ final class PsstStoreTests: XCTestCase {
         sleep(5)
         record("dm_invite", ok, ok ? "rozhovor vytvorený, žiadosť odoslaná \(full)" : "rozhovor sa nevytvoril")
         saveShot("dm-created")
+    }
+
+    // MARK: - D89: psst brand on the MAS pages
+
+    private func masBrand(_ name: String) {
+        sleep(4)
+        var labels: [String] = []
+        var title = ""
+        labels += safari.descendants(matching: .any).allElementsBoundByIndex.prefix(250).map(\.label).filter { !$0.isEmpty }
+        for root in [safari, app!] {
+            let web = root.webViews.firstMatch
+            guard web.exists else { continue }
+            if root == app { labels += web.descendants(matching: .any).allElementsBoundByIndex.prefix(250).map(\.label).filter { !$0.isEmpty } }
+            if title.isEmpty, web.label.contains("psst") || web.label.contains("matrix") { title = web.label }
+        }
+        let joined = labels.joined(separator: " ; ")
+        let forbidden = ["matrix-authentication-service", "Matrix Authentication Service", "Element"].first { joined.contains($0) }
+        let brand = labels.contains("psst")
+        let keyLike = labels.first { $0.range(of: #"^(common|frontend|mas|action)\.[a-z_.]+$"#, options: .regularExpression) != nil }
+        record("brand_\(name)", brand && forbidden == nil && keyLike == nil && (title.isEmpty || title.hasPrefix("psst")),
+               "titulok „\(title)“, logo psst \(brand ? "áno" : "nie"), zakázané \(forbidden ?? "nič"), kľúč \(keyLike ?? "žiadny")")
+        saveShot("brand-\(name)")
+    }
+
+    func testMasBranding() {
+        // registration
+        let create = app.buttons["Create account"].firstMatch
+        guard create.waitForExistence(timeout: 30) else { record("brand_start", false, "chýba Create account"); return }
+        create.tap()
+        _ = tapAny([A11yIdentifiers.serverConfirmationScreen.continue, "Continue"], timeout: 8)
+        _ = tapAny(["Continue"], in: springboard, timeout: 30)
+        if safari.textFields["Username"].firstMatch.waitForExistence(timeout: 60) { masBrand("registracia") } else { record("brand_registracia", false, "stránka sa neotvorila") }
+        _ = tapAny(["Cancel"], in: safari, timeout: 5)
+        sleep(3)
+        // sign-in page, then sign in
+        let signIn = app.buttons[A11yIdentifiers.authenticationStartScreen.signIn]
+        guard signIn.waitForExistence(timeout: 30) else { record("brand_prihlasenie", false, "chýba Sign in"); return }
+        signIn.tap()
+        _ = tapAny([A11yIdentifiers.serverConfirmationScreen.continue, "Continue"], timeout: 8)
+        _ = tapAny(["Continue"], in: springboard, timeout: 30)
+        let user = safari.textFields["Username"].firstMatch
+        guard user.waitForExistence(timeout: 60) else { record("brand_prihlasenie", false, "stránka sa neotvorila"); return }
+        masBrand("prihlasenie")
+        let pw = safari.secureTextFields["Password"].firstMatch
+        setField(user, app.username, secure: false)
+        _ = tapAny(["Done"], in: safari, timeout: 2)
+        setField(pw, app.password, secure: true)
+        _ = tapAny(["Done"], in: safari, timeout: 2)
+        _ = tapAny(["Continue"], in: safari, timeout: 5)
+        sleep(4)
+        if safari.exists, safari.buttons["Continue"].firstMatch.exists { masBrand("suhlas") }
+        _ = tapAny(["Not Now"], timeout: 3)
+        _ = tapAny(["Continue"], in: safari, timeout: 20)
+        allowSystemAlerts()
+        guard reachHome(recoveryKey: nil) else { record("brand_home", false, "prihlásenie zlyhalo"); return }
+        // account management
+        let avatar = app.buttons[A11yIdentifiers.homeScreen.userAvatar]
+        avatar.tap()
+        sleep(2)
+        let manage = app.buttons[A11yIdentifiers.settingsScreen.account].firstMatch
+        for _ in 0..<4 where !(manage.exists && manage.isHittable) { app.swipeDown(); sleep(1) }
+        guard manage.exists, manage.isHittable else { diag("settings"); record("brand_ucet", false, "Manage account sa nenašlo"); return }
+        manage.tap()
+        sleep(8)
+        masBrand("ucet")
     }
 }
