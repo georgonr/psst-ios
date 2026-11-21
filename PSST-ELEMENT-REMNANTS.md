@@ -6,7 +6,7 @@ Places where a user could see "Element", "Element X", "ElementX" or Element bran
 
 | Place | Was | Now |
 |---|---|---|
-| `ElementX/Resources/Localizations/*.lproj/InfoPlist.strings` (they override Info.plist) — camera, microphone, location prompts | "… Element X needs access to the camera / microphone", "… so that Element X can share your location" (40 locales) | en, en-US, sk: psst texts (location text per spec). All other locales: camera, microphone and location keys removed, so the English psst text from Info.plist (`$(APP_DISPLAY_NAME)`) applies; Face ID / photo library keys (no brand) kept. |
+| `ElementX/Resources/Localizations/*.lproj/InfoPlist.strings` (they override Info.plist) — camera, microphone, location prompts | "… Element X needs access to the camera / microphone", "… so that Element X can share your location" (40 locales) | en, en-US, sk: psst texts (location text per spec). All other locales were removed entirely in D98 (their Localizable.strings also said Element X and had no psst texts); a phone in another language gets English. |
 | `localazy.json` | Localazy download wrote `InfoPlist.strings` for every language (would bring "Element X" back) | The two `InfoPlist.json` actions removed — Localazy writes only `Localizable.strings/.stringsdict`. psst strings live in the `Psst` table (`Psst.strings`, `PsstL10n`), which Localazy never touches. |
 | `ElementX/SupportingFiles/target.yml` usage descriptions | upstream texts | psst texts; `NSLocationAlwaysAndWhenInUseUsageDescription` removed (psst never asks for Always, D97) |
 | Notification sounds (`NotificationTone.swift`, `NotificationToneManager.swift`) | "Element Default", "Element Fade" | "psst default" / "psst fade" (SK "psst predvolený" / "psst doznievajúci"); also shown so for a tone stored by an older build |
@@ -29,3 +29,10 @@ Places where a user could see "Element", "Element X", "ElementX" or Element bran
 - `screen_advanced_settings_element_call_base_url*` — not used by any screen.
 - `call_invalid_audio_device_bluetooth_devices_disabled` — Android only.
 - Previews / mocks / test fixtures mentioning Element (not in the app UI).
+
+## D98 — Slovak and English only
+
+`ElementX/Resources/Localizations/` keeps only `en.lproj`, `en-US.lproj` and `sk.lproj`; `Settings.bundle` keeps
+only `en.lproj`. The other ~38 upstream translations are removed from the repository (not only from the IPA), so a
+later upstream merge must not bring them back. `UnitTests/Sources/LocalizationTests.swift` checks sk instead of
+it / de / hr.
