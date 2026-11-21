@@ -18,6 +18,8 @@ import Synchronization
 
 nonisolated enum PsstStateEventType {
     static let retention = "m.room.retention"
+    /// The Rust SDK (ruma) reports `m.room.retention` in the timeline under its unstable MSC1763 name.
+    static let retentionUnstable = "org.matrix.msc1763.retention"
     static let screenProtection = "eu.macet.psst.screen_protection"
     /// Key added to the screenshot notice (`m.notice`) sent when someone takes a screenshot of a protected chat.
     static let screenshotKey = "eu.macet.psst.screenshot"
@@ -317,7 +319,8 @@ nonisolated enum PsstDisappearingMessages {
 
 nonisolated enum PsstStateEventStrings {
     static func isPsstStateEvent(_ eventType: String) -> Bool {
-        eventType == PsstStateEventType.retention || eventType == PsstStateEventType.screenProtection
+        eventType == PsstStateEventType.retention || eventType == PsstStateEventType.retentionUnstable
+            || eventType == PsstStateEventType.screenProtection
     }
 
     /// The timeline text for a psst state event, given the full event JSON.
@@ -327,7 +330,7 @@ nonisolated enum PsstStateEventStrings {
         }
 
         switch eventType {
-        case PsstStateEventType.retention:
+        case PsstStateEventType.retention, PsstStateEventType.retentionUnstable:
             if let maxLifetime = PsstStateContent.maxLifetime(in: content) {
                 return PsstL10n.tr("psst_dm_state_on", senderDisplayName, PsstRetentionOption.label(forMaxLifetime: maxLifetime))
             }

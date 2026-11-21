@@ -36,4 +36,15 @@ struct PsstMapsAndRoomSettingsTests {
         #expect(PsstStateContent.screenProtectionEnabled(in: ["enabled": true]))
         #expect(!PsstStateContent.screenProtectionEnabled(in: [:]))
     }
+    
+    @Test
+    func psstStateEventTypes() {
+        // The Rust SDK reports m.room.retention under its unstable MSC1763 name in the timeline.
+        #expect(PsstStateEventStrings.isPsstStateEvent("m.room.retention"))
+        #expect(PsstStateEventStrings.isPsstStateEvent("org.matrix.msc1763.retention"))
+        #expect(PsstStateEventStrings.isPsstStateEvent("eu.macet.psst.screen_protection"))
+        #expect(!PsstStateEventStrings.isPsstStateEvent("com.example.other"))
+        let json = #"{"type":"org.matrix.msc1763.retention","content":{"max_lifetime":300000},"origin_server_ts":1}"#
+        #expect(PsstStateEventStrings.text(eventType: "org.matrix.msc1763.retention", eventJSON: json, senderDisplayName: "Jana") != nil)
+    }
 }
