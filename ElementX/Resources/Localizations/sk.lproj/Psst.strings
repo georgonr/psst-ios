@@ -60,3 +60,8 @@
 "psst_nc_ringtone_running" = "Zvoní cez CallKit 5 sekúnd…";
 "psst_nc_ringtone_done" = "Test zvonenia skončil: CallKit prijal testovací hovor a 5 sekúnd zvonil (v tichom režime len vibruje).";
 "psst_nc_ringtone_fallback" = "CallKit nemohol zvoniť (%@) — psst namiesto toho 5 sekúnd prehrá zvuk.";
+
+/* D94: názvy, ktoré upstream uvádza ako „Element …“ */
+"psst_sound_default" = "psst predvolený";
+"psst_sound_fade" = "psst doznievajúci";
+"psst_legacy_call" = "Nepodporovaný hovor. Požiadajte volajúceho, aby zavolal znova z appky psst.";

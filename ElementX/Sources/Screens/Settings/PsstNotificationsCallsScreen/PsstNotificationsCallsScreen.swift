@@ -20,18 +20,6 @@ import SwiftUI
 import UIKit
 import UserNotifications
 
-// MARK: - Strings
-
-nonisolated enum PsstL10n {
-    static func tr(_ key: String) -> String {
-        L10n.tr("Psst", key)
-    }
-
-    static func tr(_ key: String, _ argument: String) -> String {
-        String(format: L10n.tr("Psst", key), argument)
-    }
-}
-
 // MARK: - System state
 
 nonisolated enum PsstPermissionItem: String, CaseIterable, Identifiable {

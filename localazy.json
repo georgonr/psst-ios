@@ -35,14 +35,6 @@
           "flatten_keys": "underscore"
         }
       },
-      {
-        "type": "ios-strings",
-        "changeExtension": "strings",
-        "output": "ElementX/Resources/Localizations/${iosLprojFolder}/${file}",
-        "conditions": [
-          "equals: ${languageCode}, en | equals: ${file}, InfoPlist.json"
-        ]
-      },
 
 
 
@@ -79,15 +71,6 @@
           "variable": "COUNT",
           "flatten_keys": "underscore"
         }
-      },
-      {
-        "group": "all",
-        "type": "ios-strings",
-        "changeExtension": "strings",
-        "output": "ElementX/Resources/Localizations/${iosLprojFolder}/${file}",
-        "conditions": [
-          "equals: ${file}, InfoPlist.json"
-        ]
       }
     ]
   }

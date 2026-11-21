@@ -152,15 +152,15 @@ final nonisolated class AppSettings: @unchecked Sendable {
     /// PSST: The source code of this AGPL-licensed build, linked from Settings > About.
     let sourceCodeURL: URL = "https://github.com/georgonr/psst-ios"
     /// A URL where users can go read more about encryption in general.
-    private(set) var encryptionURL: URL = "https://element.io/help#encryption"
+    private(set) var encryptionURL: URL = "https://psst.pro/support" // PSST (D94): was element.io/help (psst.pro/support has no per-topic anchors)
     /// A URL where users can go read more about device verification..
-    private(set) var deviceVerificationURL: URL = "https://element.io/help#encryption-device-verification"
+    private(set) var deviceVerificationURL: URL = "https://psst.pro/support" // PSST (D94): was element.io/help (psst.pro/support has no per-topic anchors)
     /// A URL where users can go read more about the chat backup.
-    private(set) var chatBackupDetailsURL: URL = "https://element.io/help#encryption5"
+    private(set) var chatBackupDetailsURL: URL = "https://psst.pro/support" // PSST (D94): was element.io/help (psst.pro/support has no per-topic anchors)
     /// A URL where users can go read more about identity pinning violations
-    private(set) var identityPinningViolationDetailsURL: URL = "https://element.io/help#encryption18"
+    private(set) var identityPinningViolationDetailsURL: URL = "https://psst.pro/support" // PSST (D94): was element.io/help (psst.pro/support has no per-topic anchors)
     /// A URL describing how history sharing works
-    private(set) var historySharingDetailsURL: URL = "https://element.io/en/help#e2ee-history-sharing"
+    private(set) var historySharingDetailsURL: URL = "https://psst.pro/support" // PSST (D94): was element.io/help (psst.pro/support has no per-topic anchors)
     
     /// Any domains that Element web may be hosted on - used for handling links.
     private(set) var elementWebHosts = ["app.psst.pro"] // PSST: psst web client

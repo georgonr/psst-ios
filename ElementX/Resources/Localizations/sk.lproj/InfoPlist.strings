@@ -1,6 +1,6 @@
-"NSCameraUsageDescription" = "Ak chcete nasnímať fotografie alebo videá a odosielať ich ako správu, Element X potrebuje prístup k fotoaparátu.";
-"NSFaceIDUsageDescription" = "Face ID sa používa na prístup k vašej aplikácii.";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "To share your location live in chats, location access is needed when the app is in the background.";
-"NSLocationWhenInUseUsageDescription" = "Udeľte prístup k polohe, aby Element X mohol zdieľať vašu polohu.";
-"NSMicrophoneUsageDescription" = "Ak chcete nahrávať a odosielať správy so zvukom, Element X musí mať prístup k mikrofónu.";
+"NSCameraUsageDescription" = "psst potrebuje prístup k fotoaparátu, aby ste mohli nasnímať fotky alebo videá a poslať ich do rozhovoru, a na videohovory.";
+"NSFaceIDUsageDescription" = "Face ID sa používa na ochranu prístupu k vášmu účtu.";
+"NSLocationWhenInUseUsageDescription" = "psst použije vašu polohu, len keď ju sami pošlete do rozhovoru alebo spustíte živé zdieľanie. Vidia ju len účastníci rozhovoru; v šifrovaných rozhovoroch je šifrovaná.";
+"NSMicrophoneUsageDescription" = "psst potrebuje prístup k mikrofónu, aby ste mohli nahrávať a posielať hlasové správy, a na hovory.";
 "NSPhotoLibraryUsageDescription" = "Toto vám umožní ukladať obrázky a videá do vašej knižnice fotografií.";
+"NSPhotoLibraryAddUsageDescription" = "Toto vám umožní ukladať obrázky a videá do vašej knižnice fotografií.";

@@ -11,7 +11,15 @@ import Foundation
 nonisolated struct NotificationTone: Hashable, Comparable, Codable {
     /// Display name for the tone, falling back to the filename stem.
     var label: String {
-        labelOverride ?? URL(filePath: "/\(relativePath.last, default: "")").deletingPathExtension().lastPathComponent
+        // PSST (D94): bundled tones are named by psst, also when an older build stored "Element Default"/"Element Fade".
+        if storageLocationRoot == .appBundle {
+            switch relativePath.last {
+            case "message.caf": return PsstL10n.tr("psst_sound_default")
+            case "sound_01.caf": return PsstL10n.tr("psst_sound_fade")
+            default: break
+            }
+        }
+        return labelOverride ?? URL(filePath: "/\(relativePath.last, default: "")").deletingPathExtension().lastPathComponent
     }
     
     private let labelOverride: String?
@@ -44,7 +52,8 @@ nonisolated struct NotificationTone: Hashable, Comparable, Codable {
     }
     
     /// The default bundled message tone.
-    static let `default`: NotificationTone = .createBundledSound(label: L10n.screenNotificationSettingsSoundElementDefault, filename: "message.caf")
+    static let `default`: NotificationTone = .createBundledSound(label: PsstL10n.tr("psst_sound_default"), // PSST (D94): was "Element Default"
+                                                                   filename: "message.caf")
     
     /// Creates a tone backed by a file in the system sounds directory.
     static func createSystemSound(label: String?, filename: String, systemSoundsSubdirectory: [String] = []) -> NotificationTone {

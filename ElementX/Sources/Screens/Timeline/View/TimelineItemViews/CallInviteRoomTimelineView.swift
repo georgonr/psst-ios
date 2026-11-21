@@ -13,7 +13,7 @@ import SwiftUI
 struct CallInviteRoomTimelineView: View {
     var body: some View {
         Label {
-            Text(L10n.screenRoomTimelineLegacyCall)
+            Text(PsstL10n.tr("psst_legacy_call")) // PSST (D94): upstream text names "Element X"
         } icon: {
             CompoundIcon(\.voiceCallSolid, size: .medium, relativeTo: .compound.bodyMD)
         }

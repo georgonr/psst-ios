@@ -258,7 +258,7 @@ nonisolated struct NotificationToneManager: NotificationToneManagerProtocol {
     /// Bundled tones available for selection, sorted by name.
     private static let defaultBundledAlerts: [NotificationTone] = [
         .default,
-        .createBundledSound(label: L10n.screenNotificationSettingsSoundElementFade,
+        .createBundledSound(label: PsstL10n.tr("psst_sound_fade"), // PSST (D94): was "Element Fade"
                             filename: "sound_01.caf")
     ].sorted()
     

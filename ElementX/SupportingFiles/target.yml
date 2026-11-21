@@ -88,12 +88,13 @@ targets:
           INSendMessageIntent,
           INStartCallIntent,
         ]
-        NSCameraUsageDescription: To take pictures or videos and send them as a message $(APP_DISPLAY_NAME) needs access to the camera.
-        NSMicrophoneUsageDescription: To record and send messages with audio, $(APP_DISPLAY_NAME) needs to access the microphone.
+        # PSST (D94/D97): English texts; en/sk InfoPlist.strings carry the same psst texts (Localazy no longer writes them).
+        NSCameraUsageDescription: $(APP_DISPLAY_NAME) needs camera access so you can take photos or videos and send them in a chat, and for video calls.
+        NSMicrophoneUsageDescription: $(APP_DISPLAY_NAME) needs microphone access so you can record and send voice messages, and for calls.
         NSPhotoLibraryAddUsageDescription: This lets you save images and videos to your photo library.
-        NSLocationWhenInUseUsageDescription: Grant location access so that $(APP_DISPLAY_NAME) can share your location.
+        NSLocationWhenInUseUsageDescription: $(APP_DISPLAY_NAME) uses your location only when you send it to a chat or start live sharing. Only the people in the chat can see it; in encrypted chats it is encrypted.
         NSLocationAlwaysAndWhenInUseUsageDescription: To share your live location, $(APP_DISPLAY_NAME) needs location access when the app is in the background.
-        NSFaceIDUsageDescription: Face ID is used to access your app.
+        NSFaceIDUsageDescription: Face ID is used to protect access to your account.
         UIBackgroundModes: [
           audio,
           fetch,

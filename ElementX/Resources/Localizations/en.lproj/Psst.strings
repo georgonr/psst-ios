@@ -60,3 +60,8 @@
 "psst_nc_ringtone_running" = "Ringing via CallKit for 5 seconds…";
 "psst_nc_ringtone_done" = "Ringing test finished: CallKit accepted the test call and rang for 5 seconds (in silent mode it only vibrates).";
 "psst_nc_ringtone_fallback" = "CallKit could not ring (%@) — psst plays a sound for 5 seconds instead.";
+
+/* D94: names that upstream gives as "Element …" */
+"psst_sound_default" = "psst default";
+"psst_sound_fade" = "psst fade";
+"psst_legacy_call" = "Unsupported call. Ask the caller to call again from the psst app.";
