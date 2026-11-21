@@ -936,7 +936,7 @@ class TimelineViewModel: TimelineViewModelType, TimelineViewModelProtocol {
                 guard let self,
                       let maxLifetime = PsstRoomSettingsStore.shared.maxLifetime(for: roomID) else { return }
                 let now = Date.now
-                let hiddenCount = timelineController.timelineItems.count { PsstDisappearingMessages.isExpired($0, maxLifetime: maxLifetime, now: now) }
+                let hiddenCount = timelineController.timelineItems.filter { PsstDisappearingMessages.isExpired($0, maxLifetime: maxLifetime, now: now) }.count
                 if hiddenCount != psstHiddenItemCount {
                     buildTimelineViews(timelineItems: timelineController.timelineItems)
                 }

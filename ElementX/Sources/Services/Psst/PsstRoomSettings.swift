@@ -89,10 +89,13 @@ nonisolated enum PsstStateContent {
 
     /// The `max_lifetime` of a retention content, nil when off/invalid.
     static func maxLifetime(in content: [String: Any]) -> UInt64? {
-        let value: Double? = switch content["max_lifetime"] {
-        case let number as NSNumber: number.doubleValue
-        case let string as String: Double(string)
-        default: nil
+        let raw = content["max_lifetime"]
+        let value: Double? = if let number = raw as? NSNumber {
+            number.doubleValue
+        } else if let string = raw as? String {
+            Double(string)
+        } else {
+            nil
         }
         guard let value, value > 0 else { return nil }
         return UInt64(value)

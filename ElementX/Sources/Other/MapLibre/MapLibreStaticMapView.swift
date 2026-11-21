@@ -148,9 +148,7 @@ private struct PsstMapSnapshotView<PinAnnotation: View, Placeholder: View>: View
     @State private var fetchAttempt = 0
     
     private var cacheKey: String {
-        String(format: "%@|%.6f|%.6f|%.2f|%dx%d|%d",
-               styleURL.absoluteString, coordinates.latitude, coordinates.longitude, zoomLevel,
-               Int(mapSize.width), Int(mapSize.height), fetchAttempt)
+        "\(styleURL.absoluteString)|\(coordinates.latitude)|\(coordinates.longitude)|\(zoomLevel)|\(Int(mapSize.width))x\(Int(mapSize.height))|\(fetchAttempt)"
     }
     
     var body: some View {
