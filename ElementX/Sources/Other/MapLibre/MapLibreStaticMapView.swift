@@ -75,6 +75,16 @@ struct MapLibreStaticMapView<PinAnnotation: View>: View {
                 }
                 .position(x: geometry.frame(in: .local).midX, y: geometry.frame(in: .local).midY)
                 .id(fetchAttempt)
+            } else if let styleURL = mapURLBuilder.interactiveMapURL(for: colorScheme.mapStyle) {
+                // PSST (D97): no static image API on the psst map proxy — render the preview on the device.
+                PsstMapSnapshotView(styleURL: styleURL,
+                                    coordinates: coordinates,
+                                    zoomLevel: zoomLevel,
+                                    mapSize: mapSize,
+                                    attributionAlignment: mapTilerAttributionPlacement.psstAlignment,
+                                    pinAnnotationView: pinAnnotationView,
+                                    placeholder: placeholderImage)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
             } else {
                 placeholderImage
             }
@@ -98,6 +108,127 @@ struct MapLibreStaticMapView<PinAnnotation: View>: View {
                         Text(L10n.actionStaticMapLoad)
                     }
                 }
+        }
+    }
+}
+
+// MARK: - PSST (D97): on-device static map previews
+
+/// The attribution the psst maps (OpenFreeMap / OpenStreetMap) require wherever the map is shown.
+enum PsstMapAttribution {
+    static let text = "© OpenMapTiles © OpenStreetMap contributors"
+}
+
+struct PsstMapAttributionLabel: View {
+    var body: some View {
+        Text(PsstMapAttribution.text)
+            .font(.system(size: 9))
+            .foregroundColor(.compound.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .background(Color.compound.bgCanvasDefault.opacity(0.75), in: RoundedRectangle(cornerRadius: 4))
+            .padding(4)
+            .accessibilityLabel(PsstMapAttribution.text)
+    }
+}
+
+private struct PsstMapSnapshotView<PinAnnotation: View, Placeholder: View>: View {
+    let styleURL: URL
+    let coordinates: CLLocationCoordinate2D
+    let zoomLevel: Double
+    let mapSize: CGSize
+    let attributionAlignment: Alignment
+    let pinAnnotationView: PinAnnotation
+    let placeholder: Placeholder
+    
+    @State private var image: UIImage?
+    @State private var failed = false
+    @State private var fetchAttempt = 0
+    
+    private var cacheKey: String {
+        String(format: "%@|%.6f|%.6f|%.2f|%dx%d|%d",
+               styleURL.absoluteString, coordinates.latitude, coordinates.longitude, zoomLevel,
+               Int(mapSize.width), Int(mapSize.height), fetchAttempt)
+    }
+    
+    var body: some View {
+        ZStack {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                pinAnnotationView
+            } else if failed {
+                Button {
+                    failed = false
+                    fetchAttempt += 1
+                } label: {
+                    placeholder
+                        .overlay {
+                            VStack(spacing: 0) {
+                                CompoundIcon(\.restart)
+                                Text(L10n.actionStaticMapLoad)
+                            }
+                        }
+                }
+            } else {
+                placeholder
+            }
+        }
+        .clipped()
+        .overlay(alignment: attributionAlignment) {
+            PsstMapAttributionLabel()
+        }
+        .task(id: cacheKey) {
+            if let cached = PsstMapSnapshotCache.shared.image(for: cacheKey) {
+                image = cached
+                return
+            }
+            let snapshot = await PsstMapSnapshotCache.shared.snapshot(key: cacheKey,
+                                                                      styleURL: styleURL,
+                                                                      coordinates: coordinates,
+                                                                      zoomLevel: zoomLevel,
+                                                                      size: mapSize)
+            image = snapshot
+            failed = snapshot == nil
+        }
+    }
+}
+
+@MainActor
+private final class PsstMapSnapshotCache {
+    static let shared = PsstMapSnapshotCache()
+    
+    private let cache = NSCache<NSString, UIImage>()
+    
+    func image(for key: String) -> UIImage? {
+        cache.object(forKey: key as NSString)
+    }
+    
+    func snapshot(key: String, styleURL: URL, coordinates: CLLocationCoordinate2D, zoomLevel: Double, size: CGSize) async -> UIImage? {
+        guard let shim = MapLibreLoader.shim, size.width > 0, size.height > 0 else { return nil }
+        
+        let image: UIImage? = await withCheckedContinuation { continuation in
+            shim.makeSnapshot(styleURL: styleURL, center: coordinates, zoomLevel: zoomLevel, size: size) { image in
+                continuation.resume(returning: image)
+            }
+        }
+        if let image {
+            cache.setObject(image, forKey: key as NSString)
+        }
+        return image
+    }
+}
+
+private extension MapTilerAttributionPlacement {
+    var psstAlignment: Alignment {
+        switch self {
+        case .bottomLeft: .bottomLeading
+        case .topLeft: .topLeading
+        case .topRight: .topTrailing
+        case .bottomRight, .hidden: .bottomTrailing
         }
     }
 }

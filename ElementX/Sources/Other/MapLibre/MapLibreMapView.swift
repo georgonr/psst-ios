@@ -60,6 +60,11 @@ struct MapLibreMapView: View {
     var body: some View {
         if let shim = MapLibreLoader.shim {
             shim.makeMapView(configuration: configuration)
+                // PSST (D97): attribution of the psst maps (OpenFreeMap / OpenStreetMap) always visible.
+                .overlay(alignment: .topTrailing) {
+                    PsstMapAttributionLabel()
+                        .allowsHitTesting(false)
+                }
         } else {
             // The shim failed to load, surface it the same way as a map loading failure.
             Color.clear

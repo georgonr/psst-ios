@@ -254,7 +254,8 @@ extension AlertInfo where T == LocationSharingViewAlert {
         case .missingAlwaysAuthorization:
             self.init(id: alertID,
                       title: L10n.dialogAllowAccess,
-                      message: L10n.dialogPermissionLiveLocationDescriptionIos(InfoPlistReader.main.bundleDisplayName),
+                      // PSST (D97): psst needs no "Always" permission for live sharing.
+                      message: L10n.dialogPermissionLocationDescriptionIos(InfoPlistReader.main.bundleDisplayName),
                       primaryButton: primaryButton,
                       secondaryButton: secondaryButton)
         case .missingLiveLocationSharingPermission:

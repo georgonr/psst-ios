@@ -224,10 +224,12 @@ class LocationSharingScreenViewModel: LocationSharingScreenViewModelType, Locati
     }
     
     private func checkAlwaysShareLocationPermission() {
+        // PSST (D97): "While Using the App" is enough for live sharing (see LiveLocationManager.allowsLiveSharing),
+        // psst never asks for "Always".
         authorizationStatusSubscription = nil
         let authorizationStatus = liveLocationService.authorizationStatus.value
         switch authorizationStatus {
-        case .authorizedAlways:
+        case .authorizedAlways, .authorizedWhenInUse:
             showLiveLocationFlow()
         case .notDetermined:
             // This is to solve a race condition with map libre which always tries first
@@ -236,22 +238,8 @@ class LocationSharingScreenViewModel: LocationSharingScreenViewModelType, Locati
                 .filter { $0 != authorizationStatus } // skip current status
                 .first() // this publisher only fires when there is an actual change, and if the user is done with permissions
                 .sink { [weak self] newValue in
-                    guard newValue == .authorizedWhenInUse else { return }
+                    guard newValue == .authorizedWhenInUse || newValue == .authorizedAlways else { return }
                     self?.checkAlwaysShareLocationPermission()
-                }
-        case .authorizedWhenInUse:
-            guard liveLocationService.requestAlwaysAuthorizationIfPossible() else {
-                // Already requested before — iOS won't show the prompt again.
-                showMissingAlwaysAuthorizedAlert()
-                break
-            }
-            
-            authorizationStatusSubscription = liveLocationService.authorizationStatus
-                .filter { $0 != authorizationStatus } // skip current status
-                .first() // this publisher only fires when there is an actual change, and if the user is done with permissions
-                .sink { [weak self] newValue in
-                    guard newValue == .authorizedAlways else { return }
-                    self?.showLiveLocationFlow()
                 }
         default:
             showMissingAlwaysAuthorizedAlert()
@@ -286,9 +274,9 @@ class LocationSharingScreenViewModel: LocationSharingScreenViewModelType, Locati
     }()
     
     private func showLiveLocationDurationPicker() {
+        // PSST (D97): 15 or 60 minutes.
         let durations: [Duration] = [.seconds(15 * 60), // 15 minutes
-                                     .seconds(60 * 60), // 1 hour
-                                     .seconds(60 * 60 * 8)] // 8 hours
+                                     .seconds(60 * 60)] // 1 hour
         
         let durationButtons: [AlertInfo<LocationSharingViewAlert>.AlertButton] = durations.compactMap { duration in
             guard let title = Self.durationFormatter.string(from: duration.seconds) else { return nil }

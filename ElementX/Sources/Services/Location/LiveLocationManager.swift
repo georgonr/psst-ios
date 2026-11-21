@@ -69,7 +69,7 @@ final class LiveLocationManager: NSObject, LiveLocationManagerProtocol, CLLocati
         ]
         
         // Shares restored without the authorization they need can't carry on.
-        if locationManager.authorizationStatus != .authorizedAlways {
+        if !Self.allowsLiveSharing(locationManager.authorizationStatus) {
             Task { await service.stopAllLiveLocations() }
         }
     }
@@ -92,7 +92,7 @@ final class LiveLocationManager: NSObject, LiveLocationManagerProtocol, CLLocati
         }
         
         // If authorization was revoked, stop all active sessions.
-        if authorizationStatus != .authorizedAlways {
+        if !Self.allowsLiveSharing(authorizationStatus) {
             stopAllLiveLocations()
         }
         
@@ -126,6 +126,14 @@ final class LiveLocationManager: NSObject, LiveLocationManagerProtocol, CLLocati
     }
     
     // MARK: - Private
+    
+    /// PSST (D97): live sharing only needs "While Using the App". Updates start in the foreground when the user
+    /// starts a share, and `allowsBackgroundLocationUpdates` + the `location` background mode let iOS continue them
+    /// (with the blue location indicator) until the share ends or expires — no "Always" permission, and no location
+    /// updates at all while nothing is shared.
+    static func allowsLiveSharing(_ status: CLAuthorizationStatus) -> Bool {
+        status == .authorizedWhenInUse || status == .authorizedAlways
+    }
     
     private func setupSubscriptions() {
         appSettings.liveLocationMinimumDistanceUpdatePublisher

@@ -342,12 +342,13 @@ final nonisolated class AppSettings: @unchecked Sendable {
     // MARK: - Maps
     
     /// The locally-bundled MapTiler configuration.
-    // PSST: no bundled MapTiler key (Element's key is not ours) - location sharing stays disabled unless
-    // chat.psst.pro provides its own map configuration.
-    private(set) var bundledMapTilerConfiguration = MapTilerConfiguration(baseURL: "https://api.maptiler.com/maps",
-                                                                          apiKey: nil,
-                                                                          lightStyleID: "9bc819c8-e627-474a-a348-ec144fe3d810",
-                                                                          darkStyleID: "dea61faf-292b-4774-9660-58fcef89a7f3")
+    // PSST (D97): psst maps — OpenFreeMap (OpenStreetMap) styles through the psst proxy, no key and no third party
+    // seeing the users' IPs. The proxy rewrites every URL inside the styles (tiles, sprites, glyphs) to
+    // https://app.psst.pro/maps/…. An empty key enables location sharing without sending a key (see MapURLs.swift).
+    private(set) var bundledMapTilerConfiguration = MapTilerConfiguration(baseURL: "https://app.psst.pro/maps/styles",
+                                                                          apiKey: "",
+                                                                          lightStyleID: "liberty",
+                                                                          darkStyleID: "dark")
     
     // MARK: - Feature Flags
     

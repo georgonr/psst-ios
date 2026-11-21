@@ -118,7 +118,7 @@ final class LiveLocationManagerTests {
     
     @Test
     func addingAnAccountWithoutAlwaysAuthorizationStopsItsShares() async {
-        setUp(authorizationStatus: .authorizedWhenInUse)
+        setUp(authorizationStatus: .denied) // PSST (D97): While Using is enough for live sharing
         let alice = makeService(userID: "@alice:matrix.org", isSharing: .init(true))
         
         await waitForConfirmation("Wait for the shares to stop") { confirm in

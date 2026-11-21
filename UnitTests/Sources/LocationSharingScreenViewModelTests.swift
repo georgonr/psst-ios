@@ -223,12 +223,13 @@ struct LocationSharingScreenViewModelTests {
         #expect(context.alertInfo?.id == .missingAlwaysAuthorization)
     }
     
+    // PSST (D97): "While Using the App" is enough for live sharing, psst never asks for "Always".
     @Test
     mutating func startLiveLocationWithWhenInUseAuthorizationAlreadyRequested() {
         setupViewModel(liveLocationServiceConfiguration: .init(authorizationStatus: .authorizedWhenInUse,
                                                                requestAlwaysAuthorizationIfPossibleReturnValue: false))
         context.send(viewAction: .startLiveLocation)
-        #expect(context.alertInfo?.id == .missingAlwaysAuthorization)
+        #expect(context.alertInfo?.id == .liveLocationDisclaimer || context.alertInfo?.id == .liveLocationDurationSelection)
     }
     
     @Test
@@ -236,8 +237,7 @@ struct LocationSharingScreenViewModelTests {
         setupViewModel(liveLocationServiceConfiguration: .init(authorizationStatus: .authorizedWhenInUse,
                                                                requestAlwaysAuthorizationIfPossibleReturnValue: true))
         context.send(viewAction: .startLiveLocation)
-        // The request can be made, so no alert should be shown — it waits for the user to respond to the system prompt
-        #expect(context.alertInfo == nil)
+        #expect(context.alertInfo?.id == .liveLocationDisclaimer || context.alertInfo?.id == .liveLocationDurationSelection)
     }
     
     @Test
@@ -252,17 +252,11 @@ struct LocationSharingScreenViewModelTests {
         
         // No alert yet — waiting for MapLibre to resolve the status to whenInUse
         #expect(context.alertInfo == nil)
-        #expect(!liveLocationServiceMock.requestAlwaysAuthorizationIfPossibleCalled)
         
-        // Simulate MapLibre resolving the Authorization to whenInUse. The subject delivers
-        // synchronously on the main actor, so the ViewModel recurses and calls
-        // requestAlwaysAuthorizationIfPossible before send returns.
         authorizationStatusSubject.send(.authorizedWhenInUse)
         
-        #expect(liveLocationServiceMock.requestAlwaysAuthorizationIfPossibleCalled)
-        
-        // The request was made, so no alert — waiting for the always Authorization prompt response
-        #expect(context.alertInfo == nil)
+        #expect(!liveLocationServiceMock.requestAlwaysAuthorizationIfPossibleCalled)
+        #expect(context.alertInfo?.id == .liveLocationDisclaimer || context.alertInfo?.id == .liveLocationDurationSelection)
     }
     
     // MARK: - Live Location Start Flow Tests

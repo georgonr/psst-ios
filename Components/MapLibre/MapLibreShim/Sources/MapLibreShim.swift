@@ -5,6 +5,7 @@
 // Please see LICENSE files in the repository root for full details.
 //
 
+import CoreLocation
 import MapLibre
 import MapLibreInterface
 import SwiftUI
@@ -35,5 +36,27 @@ public final class MapLibreShim: NSObject, MapLibreShimProtocol {
     
     public func makeMapView(configuration: MapViewConfiguration) -> AnyView {
         AnyView(MapLibreMapView(configuration: configuration))
+    }
+    
+    /// Snapshotters must stay alive until they complete.
+    private var activeSnapshotters: [ObjectIdentifier: MLNMapSnapshotter] = [:]
+    
+    public func makeSnapshot(styleURL: URL,
+                             center: CLLocationCoordinate2D,
+                             zoomLevel: Double,
+                             size: CGSize,
+                             completion: @escaping (UIImage?) -> Void) {
+        let camera = MLNMapCamera()
+        camera.centerCoordinate = center
+        let options = MLNMapSnapshotOptions(styleURL: styleURL, camera: camera, size: size)
+        options.zoomLevel = zoomLevel
+        
+        let snapshotter = MLNMapSnapshotter(options: options)
+        let id = ObjectIdentifier(snapshotter)
+        activeSnapshotters[id] = snapshotter
+        snapshotter.start { [weak self] snapshot, _ in
+            completion(snapshot?.image)
+            self?.activeSnapshotters[id] = nil
+        }
     }
 }

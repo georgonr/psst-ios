@@ -12,8 +12,17 @@ extension MapTilerConfiguration: MapTilerURLBuilderProtocol {
     /// For interactive MGLMap components
     func interactiveMapURL(for style: MapTilerStyle) -> URL? {
         var url = styleURL(for: style)
-        url?.appendPathComponent("style.json", conformingTo: .json)
+        // PSST (D97): the psst map proxy serves the style JSON at the style URL itself.
+        if !isPsstMaps {
+            url?.appendPathComponent("style.json", conformingTo: .json)
+        }
         return url
+    }
+    
+    /// PSST (D97): the psst map proxy (https://app.psst.pro/maps/styles/{liberty,dark}) has no static image API, so
+    /// static previews are rendered on the device from the style (see `MapLibreStaticMapView`).
+    var isPsstMaps: Bool {
+        baseURL.host() == "app.psst.pro"
     }
     
     /// Used in the timeline where a full MGLMapView loading is unwanted
@@ -22,6 +31,7 @@ extension MapTilerConfiguration: MapTilerURLBuilderProtocol {
                                zoomLevel: Double,
                                size: CGSize,
                                attribution: MapTilerAttributionPlacement) -> URL? {
+        guard !isPsstMaps else { return nil }
         var url = styleURL(for: style)
         url?.appendPathComponent(String(format: "static/%f,%f,%f/%dx%d@2x.png",
                                         coordinates.longitude,
