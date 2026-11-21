@@ -24,9 +24,9 @@ final class LocalizationTests {
         #expect(L10n.testLanguageIdentifier == "en")
         
         // set app language to Italian
-        Bundle.overrideLocalizations = ["it"]
+        Bundle.overrideLocalizations = ["sk"]
         
-        #expect(L10n.testLanguageIdentifier == "it")
+        #expect(L10n.testLanguageIdentifier == "sk")
     }
     
     /// Test fallback language for a language not supported at all
@@ -42,9 +42,9 @@ final class LocalizationTests {
     @Test
     func fallbackOnNotTranslatedKey() {
         //  set app language to something Element supports but use a key that is not translated (we have a key that should never be translated)
-        Bundle.overrideLocalizations = ["it"]
+        Bundle.overrideLocalizations = ["sk"]
         
-        #expect(L10n.testLanguageIdentifier == "it")
+        #expect(L10n.testLanguageIdentifier == "sk")
         #expect(L10n.testUntranslatedDefaultLanguageIdentifier == "en")
     }
     
@@ -58,10 +58,10 @@ final class LocalizationTests {
         #expect(L10n.commonMemberCount(2) == "2 Members")
         
         //  set app language to Italian
-        Bundle.overrideLocalizations = ["it"]
+        Bundle.overrideLocalizations = ["sk"]
         
-        #expect(L10n.commonMemberCount(1) == "1 Membro")
-        #expect(L10n.commonMemberCount(2) == "2 Membri")
+        #expect(L10n.commonMemberCount(1) == "1 člen")
+        #expect(L10n.commonMemberCount(2) == "2 členovia")
     }
     
     /// Test plurals fallback language for a language not supported at all
@@ -77,15 +77,13 @@ final class LocalizationTests {
     /// Test SAS emoji descriptions are looked up by their index in the spec's emoji table
     @Test
     func sasEmojiDescriptions() {
-        Bundle.overrideLocalizations = ["de"]
+        // PSST (D98): psst ships Slovak and English only, so Slovak replaces the upstream de / hr checks.
+        Bundle.overrideLocalizations = ["sk"]
         
-        #expect(SessionVerificationEmoji(index: 0, symbol: "🐶", description: "Dog").localizedDescription == "Hund")
-        #expect(SessionVerificationEmoji(index: 36, symbol: "👍", description: "Thumbs Up").localizedDescription == "Daumen Hoch")
-        #expect(SessionVerificationEmoji(index: 41, symbol: "💡", description: "Light Bulb").localizedDescription == "Glühbirne")
-        
-        Bundle.overrideLocalizations = ["hr"]
-        
-        #expect(SessionVerificationEmoji(index: 23, symbol: "🍌", description: "Banana").localizedDescription == "banana")
+        #expect(SessionVerificationEmoji(index: 0, symbol: "🐶", description: "Dog").localizedDescription == "Pes")
+        #expect(SessionVerificationEmoji(index: 36, symbol: "👍", description: "Thumbs Up").localizedDescription == "Palec nahor")
+        #expect(SessionVerificationEmoji(index: 41, symbol: "💡", description: "Light Bulb").localizedDescription == "Žiarovka")
+        #expect(SessionVerificationEmoji(index: 23, symbol: "🍌", description: "Banana").localizedDescription == "Banán")
     }
     
     /// Test every emoji in the spec's SAS emoji table has a description

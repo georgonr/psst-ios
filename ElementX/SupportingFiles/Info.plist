@@ -58,15 +58,13 @@
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>To take pictures or videos and send them as a message $(APP_DISPLAY_NAME) needs access to the camera.</string>
+	<string>$(APP_DISPLAY_NAME) needs camera access so you can take photos or videos and send them in a chat, and for video calls.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Face ID is used to access your app.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>To share your live location, $(APP_DISPLAY_NAME) needs location access when the app is in the background.</string>
+	<string>Face ID is used to protect access to your account.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Grant location access so that $(APP_DISPLAY_NAME) can share your location.</string>
+	<string>$(APP_DISPLAY_NAME) uses your location only when you send it to a chat or start live sharing. Only the people in the chat can see it; in encrypted chats it is encrypted.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>To record and send messages with audio, $(APP_DISPLAY_NAME) needs to access the microphone.</string>
+	<string>$(APP_DISPLAY_NAME) needs microphone access so you can record and send voice messages, and for calls.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This lets you save images and videos to your photo library.</string>
 	<key>NSUserActivityTypes</key>
@@ -74,6 +72,8 @@
 		<string>INSendMessageIntent</string>
 		<string>INStartCallIntent</string>
 	</array>
+	<key>PSSTBuildDate</key>
+	<string>$(PSST_BUILD_DATE)</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
