@@ -811,3 +811,59 @@ class JoinedRoomProxy: JoinedRoomProxyProtocol {
         return .exclude(stateEventFilters.map { TimelineEventCondition.eventType($0) })
     }()
 }
+
+// MARK: - PSST (D95, D96): room state and raw events for psst settings
+
+extension JoinedRoomProxy: PsstRoomStateAccess {
+    func psstLocalStateEvents(eventType: String) async -> [(contentJSON: String, timestamp: UInt64)] {
+        do {
+            return try await room.stateEvents(eventType: stateEventTypeFromString(s: eventType))
+                .filter { $0.stateKey.isEmpty }
+                .map { ($0.contentJson, $0.timestamp ?? 0) }
+        } catch {
+            MXLog.warning("PSST: failed reading local \(eventType) state: \(error)")
+            return []
+        }
+    }
+    
+    func psstSubscribeToStateEvents(eventType: String, onUpdate: @escaping @Sendable (String, UInt64) -> Void) -> TaskHandle? {
+        room.subscribeToStateEvents(eventType: stateEventTypeFromString(s: eventType),
+                                    listener: PsstRoomStateEventsListener { events in
+                                        for event in events where event.stateKey.isEmpty {
+                                            onUpdate(event.contentJson, event.timestamp ?? 0)
+                                        }
+                                    })
+    }
+    
+    func psstSendStateEvent(eventType: String, contentJSON: String) async -> Result<Void, RoomProxyError> {
+        do {
+            _ = try await room.sendStateEventRaw(eventType: eventType, stateKey: "", content: contentJSON, requestConfigOverride: nil)
+            return .success(())
+        } catch {
+            MXLog.error("PSST: failed sending \(eventType) state: \(error)")
+            return .failure(.sdkError(error))
+        }
+    }
+    
+    func psstSendMessageEvent(eventType: String, contentJSON: String) async -> Result<Void, RoomProxyError> {
+        do {
+            _ = try await room.sendRaw(eventType: eventType, content: contentJSON, requestConfigOverride: nil)
+            return .success(())
+        } catch {
+            MXLog.error("PSST: failed sending \(eventType): \(error)")
+            return .failure(.sdkError(error))
+        }
+    }
+}
+
+private nonisolated final class PsstRoomStateEventsListener: RoomStateEventsListener {
+    private let handler: @Sendable ([RoomStateEvent]) -> Void
+    
+    init(_ handler: @escaping @Sendable ([RoomStateEvent]) -> Void) {
+        self.handler = handler
+    }
+    
+    func onUpdate(events: [RoomStateEvent]) {
+        handler(events)
+    }
+}

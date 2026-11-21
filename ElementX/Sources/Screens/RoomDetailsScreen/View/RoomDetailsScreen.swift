@@ -12,6 +12,8 @@ import SwiftUI
 
 struct RoomDetailsScreen: View {
     @Bindable var context: RoomDetailsScreenViewModel.Context
+    /// PSST (D95, D96): disappearing messages and screen protection.
+    var psstPrivacy: PsstRoomPrivacySettingsModel?
     
     @State private var isTopicExpanded = false
     
@@ -33,6 +35,10 @@ struct RoomDetailsScreen: View {
             }
             
             configurationSection
+            
+            if let psstPrivacy {
+                PsstRoomPrivacySection(model: psstPrivacy)
+            }
             
             securitySection
             

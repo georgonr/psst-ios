@@ -40,6 +40,8 @@ enum RoomDetailsScreenCoordinatorAction {
 final class RoomDetailsScreenCoordinator: CoordinatorProtocol {
     private var viewModel: RoomDetailsScreenViewModelProtocol
     private let isSpace: Bool
+    /// PSST (D95, D96)
+    private let psstPrivacy: PsstRoomPrivacySettingsModel?
     
     private let actionsSubject: PassthroughSubject<RoomDetailsScreenCoordinatorAction, Never> = .init()
     private var cancellables = Set<AnyCancellable>()
@@ -50,6 +52,7 @@ final class RoomDetailsScreenCoordinator: CoordinatorProtocol {
     
     init(parameters: RoomDetailsScreenCoordinatorParameters) {
         isSpace = parameters.roomProxy.infoPublisher.value.isSpace
+        psstPrivacy = isSpace ? nil : PsstRoomPrivacySettingsModel(roomProxy: parameters.roomProxy)
         viewModel = RoomDetailsScreenViewModel(roomProxy: parameters.roomProxy,
                                                userSession: parameters.userSession,
                                                analyticsService: parameters.analyticsService,
@@ -111,7 +114,7 @@ final class RoomDetailsScreenCoordinator: CoordinatorProtocol {
         if isSpace {
             AnyView(SpaceSettingsScreen(context: viewModel.context))
         } else {
-            AnyView(RoomDetailsScreen(context: viewModel.context))
+            AnyView(RoomDetailsScreen(context: viewModel.context, psstPrivacy: psstPrivacy))
         }
     }
 }

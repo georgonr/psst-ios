@@ -65,3 +65,23 @@
 "psst_sound_default" = "psst default";
 "psst_sound_fade" = "psst fade";
 "psst_legacy_call" = "Unsupported call. Ask the caller to call again from the psst app.";
+
+/* D95: disappearing messages (m.room.retention) */
+"psst_dm_title" = "Disappearing messages";
+"psst_dm_off" = "Off";
+"psst_dm_5_minutes" = "5 minutes";
+"psst_dm_1_hour" = "1 hour";
+"psst_dm_1_day" = "1 day";
+"psst_dm_1_week" = "1 week";
+"psst_dm_explanation" = "Messages in this chat disappear for everyone after the chosen time — older ones too. The psst server deletes them and the psst apps stop showing them. Anything someone copied, forwarded or photographed in the meantime can't be taken back.";
+"psst_dm_state_on" = "%1$@ turned on disappearing messages: %2$@";
+"psst_dm_state_off" = "%1$@ turned off disappearing messages";
+
+/* D96: screen protection (eu.macet.psst.screen_protection) */
+"psst_sp_title" = "Screen protection";
+"psst_on" = "On";
+"psst_sp_explanation" = "The psst Android app blocks screenshots and screen recording in this chat. On iPhone and on the web this can't be blocked: the iPhone app hides the chat while the screen is recorded or shared, and when someone takes a screenshot, the others are told. psst for desktop prevents capturing the window where the system allows it. Nothing can stop someone photographing the screen with another device.";
+"psst_sp_state_on" = "%1$@ turned on screen protection";
+"psst_sp_state_off" = "%1$@ turned off screen protection";
+"psst_sp_screenshot_notice" = "📸 %1$@ took a screenshot";
+"psst_sp_shield" = "This chat is protected.";

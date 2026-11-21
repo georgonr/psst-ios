@@ -63,8 +63,12 @@ final class RoomScreenCoordinator: CoordinatorProtocol {
         actionsSubject.eraseToAnyPublisher()
     }
     
+    /// PSST (D96): screen protection (and the psst room settings) while this room is open.
+    private let psstScreenProtection: PsstRoomScreenProtectionSession
+    
     init(parameters: RoomScreenCoordinatorParameters) {
         userSettings = parameters.userSession.userSettings
+        psstScreenProtection = PsstRoomScreenProtectionSession(roomProxy: parameters.roomProxy, userSession: parameters.userSession)
         
         var selectedPinnedEventID: String?
         if let focussedEvent = parameters.focussedEvent {
@@ -238,6 +242,7 @@ final class RoomScreenCoordinator: CoordinatorProtocol {
     func stop() {
         composerViewModel.stop()
         roomViewModel.stop()
+        psstScreenProtection.stop()
     }
     
     func toPresentable() -> AnyView {

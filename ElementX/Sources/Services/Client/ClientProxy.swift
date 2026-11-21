@@ -159,6 +159,12 @@ class ClientProxy: ClientProxyProtocol {
         
         userProfileSubject = .init(UserProfile(userID: (try? client.userId()) ?? ""))
         
+        // PSST (D95, D96): direct room state reads for the psst settings (see PsstRoomSettings.swift).
+        PsstStateFetcher.shared.register(userID: (try? client.userId()) ?? "") { [weak client] in
+            guard let session = try? client?.session() else { return nil }
+            return (session.homeserverUrl, session.accessToken)
+        }
+        
         mediaLoader = MediaLoader(client: client)
         
         // Route media downloads through a content scanner when one has been configured for the server,

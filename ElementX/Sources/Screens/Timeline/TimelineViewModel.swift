@@ -125,6 +125,7 @@ class TimelineViewModel: TimelineViewModelType, TimelineViewModelProtocol {
         
         setupSubscriptions()
         setupDirectRoomSubscriptionsIfNeeded()
+        setupPsstDisappearingMessages()
         
         state.audioPlayerStateProvider = { [weak self] itemID -> AudioPlayerState? in
             guard let self else {
@@ -896,9 +897,58 @@ class TimelineViewModel: TimelineViewModelType, TimelineViewModelProtocol {
         }
     }
     
+    // MARK: - PSST (D95): disappearing messages
+    
+    /// Number of messages hidden by the last build, to rebuild only when another one expires.
+    private var psstHiddenItemCount = 0
+    
+    private func psstVisibleTimelineItems(_ items: [RoomTimelineItemProtocol]) -> [RoomTimelineItemProtocol] {
+        guard let maxLifetime = PsstRoomSettingsStore.shared.maxLifetime(for: roomProxy.id) else {
+            psstHiddenItemCount = 0
+            return items
+        }
+        let now = Date.now
+        let visibleItems = items.filter { !PsstDisappearingMessages.isExpired($0, maxLifetime: maxLifetime, now: now) }
+        psstHiddenItemCount = items.count - visibleItems.count
+        return visibleItems
+    }
+    
+    /// Re-checks every 15 s, on returning to the foreground and when the room's setting changes — also offline,
+    /// as only the local clock and the stored setting are needed.
+    private func setupPsstDisappearingMessages() {
+        let roomID = roomProxy.id
+        
+        NotificationCenter.default.publisher(for: PsstRoomSettingsStore.didChangeNotification)
+            .filter { ($0.object as? String) == roomID }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                buildTimelineViews(timelineItems: timelineController.timelineItems)
+            }
+            .store(in: &cancellables)
+        
+        Timer.publish(every: 15, on: .main, in: .common)
+            .autoconnect()
+            .map { _ in () }
+            .merge(with: NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification).map { _ in () })
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self,
+                      let maxLifetime = PsstRoomSettingsStore.shared.maxLifetime(for: roomID) else { return }
+                let now = Date.now
+                let hiddenCount = timelineController.timelineItems.count { PsstDisappearingMessages.isExpired($0, maxLifetime: maxLifetime, now: now) }
+                if hiddenCount != psstHiddenItemCount {
+                    buildTimelineViews(timelineItems: timelineController.timelineItems)
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
     // MARK: - Timeline Item Building
     
-    private func buildTimelineViews(timelineItems: [RoomTimelineItemProtocol], isSwitchingTimelines: Bool = false) {
+    private func buildTimelineViews(timelineItems unfilteredTimelineItems: [RoomTimelineItemProtocol], isSwitchingTimelines: Bool = false) {
+        // PSST (D95): messages older than the room's disappearing messages time are not shown.
+        let timelineItems = psstVisibleTimelineItems(unfilteredTimelineItems)
         var timelineItemsDictionary = OrderedDictionary<TimelineItemIdentifier.UniqueID, RoomTimelineItemViewState>()
         
         timelineItems.filter { $0 is RedactedRoomTimelineItem }.forEach { timelineItem in

@@ -65,3 +65,23 @@
 "psst_sound_default" = "psst predvolený";
 "psst_sound_fade" = "psst doznievajúci";
 "psst_legacy_call" = "Nepodporovaný hovor. Požiadajte volajúceho, aby zavolal znova z appky psst.";
+
+/* D95: miznúce správy (m.room.retention) */
+"psst_dm_title" = "Miznúce správy";
+"psst_dm_off" = "Vypnuté";
+"psst_dm_5_minutes" = "5 minút";
+"psst_dm_1_hour" = "1 hodina";
+"psst_dm_1_day" = "1 deň";
+"psst_dm_1_week" = "1 týždeň";
+"psst_dm_explanation" = "Správy v tomto rozhovore po zvolenom čase zmiznú všetkým účastníkom — aj staršie. Server psst ich zmaže a appky psst ich prestanú zobrazovať. Čo si niekto medzitým skopíroval, preposlal alebo odfotil, sa vrátiť nedá.";
+"psst_dm_state_on" = "%1$@ zapína miznúce správy: %2$@";
+"psst_dm_state_off" = "%1$@ vypína miznúce správy";
+
+/* D96: ochrana obrazovky (eu.macet.psst.screen_protection) */
+"psst_sp_title" = "Ochrana obrazovky";
+"psst_on" = "Zapnuté";
+"psst_sp_explanation" = "Appka psst na Androide v tomto rozhovore zablokuje snímky a nahrávanie obrazovky. Na iPhone a na webe sa to zablokovať nedá: appka na iPhone rozhovor skryje, keď sa obrazovka nahráva alebo zdieľa, a keď niekto urobí snímku, ostatní dostanú upozornenie. psst pre počítač bráni zachyteniu okna, kde to systém umožňuje. Odfotiť displej iným zariadením nezabráni nič.";
+"psst_sp_state_on" = "%1$@ zapína ochranu obrazovky";
+"psst_sp_state_off" = "%1$@ vypína ochranu obrazovky";
+"psst_sp_screenshot_notice" = "📸 %1$@ urobil(a) snímku obrazovky";
+"psst_sp_shield" = "Tento rozhovor je chránený.";

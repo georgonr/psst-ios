@@ -56,6 +56,16 @@ nonisolated struct RoomTimelineItemFactory: RoomTimelineItemFactoryProtocol {
             if isDM, case .roomCreate = content {
                 return nil
             }
+            // PSST (D95, D96): disappearing messages / screen protection state changes.
+            if case .custom(let eventType) = content, PsstStateEventStrings.isPsstStateEvent(eventType) {
+                let sender = eventItemProxy.sender
+                guard let text = PsstStateEventStrings.text(eventType: eventType,
+                                                            eventJSON: eventItemProxy.debugInfo.originalJSON,
+                                                            senderDisplayName: sender.disambiguatedDisplayName ?? sender.id) else {
+                    return nil
+                }
+                return buildStateTimelineItem(for: eventItemProxy, text: text, isOutgoing: isOutgoing)
+            }
             return buildStateTimelineItem(for: eventItemProxy, state: content, isOutgoing: isOutgoing)
         case .roomMembership(userId: let userID, let displayName, change: let change, let reason):
             if isDM, change == .joined, userID == self.userID {
