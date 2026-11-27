@@ -11,6 +11,7 @@
 //
 // State (messages, peers, counters) and the private key live in --state (default ~/.psst-lab-mesh), not in the repo.
 // The tool never changes radio settings, except: if the region is UNSET it sets EU_868 (DECISIONS L1-08).
+#if os(macOS)
 import Foundation
 import MeshtasticProtobufs
 import PsstMesh
@@ -266,3 +267,6 @@ final class Tool {
 
 let code = await Tool(args: Args()).run()
 exit(code)
+#else
+print("psst-mesh runs on macOS only")
+#endif
