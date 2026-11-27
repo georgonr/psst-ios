@@ -461,16 +461,17 @@ public final class MeshClient {
 
     // MARK: Peers
 
-    public func link(card: PeerCard, source: String) {
-        var peer = labState.peers[card.nodeNum] ?? LabPeer(card: card, source: source, linkedAt: Date(), sendCounter: 0)
+    public func link(card: PeerCard, source: String, linkedAt: Date = Date()) {
+        var peer = labState.peers[card.nodeNum] ?? LabPeer(card: card, source: source, linkedAt: linkedAt, sendCounter: 0)
         if peer.card.publicKey != card.publicKey {
             // a new key for the node: new key pair on the other side → old counters/windows no longer apply
-            peer = LabPeer(card: card, source: source, linkedAt: Date(), sendCounter: 0)
+            peer = LabPeer(card: card, source: source, linkedAt: linkedAt, sendCounter: 0)
             inbox.windows[card.nodeNum] = nil
             labState.replayWindows[card.nodeNum] = nil
         } else {
             peer.card = card
             peer.source = source
+            peer.linkedAt = linkedAt
         }
         // a Matrix user moving to another node: drop the old binding
         if let mx = card.matrixUserID {
