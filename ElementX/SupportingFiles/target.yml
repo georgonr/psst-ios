@@ -94,14 +94,16 @@ targets:
         NSPhotoLibraryAddUsageDescription: This lets you save images and videos to your photo library.
         NSLocationWhenInUseUsageDescription: $(APP_DISPLAY_NAME) uses your location only when you send it to a chat or start live sharing. Only the people in the chat can see it; in encrypted chats it is encrypted.
         NSFaceIDUsageDescription: Face ID is used to protect access to your account.
-        # PSST (D97): `location` only keeps a live location share running in the background after the user started it
-        # in the app (While Using permission, blue indicator); without an active share psst requests no locations.
+        # PSST (L1): psst lab — Bluetooth only for the user's own Meshtastic LoRa radio
+        NSBluetoothAlwaysUsageDescription: $(APP_DISPLAY_NAME) uses Bluetooth only to connect to your own Meshtastic LoRa radio, to send and receive LoRa messages. It does not track other devices or your location.
+        # PSST (L1): psst lab has NO background location (live location sharing stops when the app leaves the
+        # foreground). `bluetooth-central` keeps the connection to the LoRa radio while the screen is locked.
         UIBackgroundModes: [
           audio,
           fetch,
           processing,
           voip,
-          location
+          bluetooth-central
         ]
         # PSST: task identifiers renamed to the psst bundle id, must match AppSettings.
         BGTaskSchedulerPermittedIdentifiers: [
@@ -122,16 +124,9 @@ targets:
     entitlements:
       path: ElementX.entitlements
       properties:
-        aps-environment: development
-        # PSST: Element's domains replaced. Universal links only work once app.psst.pro serves an
-        # apple-app-site-association file listing <TEAM_ID>.eu.macet.psst (see docs/decisions/ios.md).
-        com.apple.developer.associated-domains:
-        - applinks:app.psst.pro
-        # - applinks:localhost?mode=developer # developer mode only works with https (but self-signed is fine).
-        com.apple.developer.usernotifications.communication: true
+        # PSST (L1): psst lab — no push (Sygnal knows only eu.macet.psst; the server is not changed), no universal
+        # links (app.psst.pro lists only psst), no Communication Notifications, no App Group (nothing shared with psst).
         com.apple.security.app-sandbox: true
-        com.apple.security.application-groups:
-        - $(APP_GROUP_IDENTIFIER) # PSST: classic app group removed
         com.apple.security.network.client: true
         keychain-access-groups:
         - $(KEYCHAIN_ACCESS_GROUP_IDENTIFIER) # PSST: classic keychain group removed
@@ -228,9 +223,13 @@ targets:
         fi
 
     dependencies:
-    - target: NSE
-    - target: ShareExtension
+    # PSST (L1): psst lab ships without the notification service and share extensions (they need the App Group and
+    # push); their sources stay in the project for the unit tests.
     - target: MatrixRustSDKMocks
+    - package: PsstLab
+      product: PsstLabUI
+    - package: PsstLab
+      product: PsstMesh
     - package: MatrixRustSDK
       embed: true
     - package: Compound

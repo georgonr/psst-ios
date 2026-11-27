@@ -82,6 +82,9 @@ packages:
     path: compound-ios
   BuildExtensions:
     path: Components/BuildExtensions
+  # PSST (L1): psst lab — Meshtastic / LoRa layer and UI
+  PsstLab:
+    path: Components/PsstLab
   AnalyticsEvents:
     url: https://github.com/matrix-org/matrix-analytics-events
     exactVersion: 0.38.0

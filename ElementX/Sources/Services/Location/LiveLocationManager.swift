@@ -38,8 +38,10 @@ final class LiveLocationManager: NSObject, LiveLocationManagerProtocol, CLLocati
         
         // Configure CLLocationManager for continuous background tracking.
         self.locationManager.delegate = self
-        self.locationManager.allowsBackgroundLocationUpdates = true
-        self.locationManager.showsBackgroundLocationIndicator = true
+        // PSST (L1): psst lab has no `location` background mode; setting this without it would crash.
+        let backgroundModes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] ?? []
+        self.locationManager.allowsBackgroundLocationUpdates = backgroundModes.contains("location")
+        self.locationManager.showsBackgroundLocationIndicator = backgroundModes.contains("location")
         
         // Since unpausing location updates is not trivial, let's always keep the location updates running
         // The distance filtering will already take care of not sending updates when not required.

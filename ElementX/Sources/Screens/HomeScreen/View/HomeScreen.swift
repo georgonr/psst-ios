@@ -9,6 +9,7 @@
 import Combine
 import Compound
 import Sentry
+import PsstLabUI
 import SwiftUI
 
 struct HomeScreen: View {
@@ -17,6 +18,8 @@ struct HomeScreen: View {
     @ObservedObject var context: HomeScreenViewModel.Context
     
     @State private var scrollViewAdapter = ScrollViewAdapter()
+    /// PSST (L1): psst lab — the LoRa section (separate from the Matrix chats)
+    @State private var isPresentingLoRa = false
     
     @Namespace private var navigationTransitionNamespace
     private enum NavigationTransitionSourceID {
@@ -46,7 +49,13 @@ struct HomeScreen: View {
                 MultiAccountAnnouncementView(context: context)
                     .onAppear { context.send(viewAction: .multiAccountAnnouncementAppeared) }
             }
-            .onAppear { context.send(viewAction: .screenAppeared) }
+            .onAppear {
+                context.send(viewAction: .screenAppeared)
+                PsstLabHome.update(profile: context.viewState.userProfile)
+            }
+            .fullScreenCover(isPresented: $isPresentingLoRa) {
+                LoRaRootView { isPresentingLoRa = false }
+            }
     }
     
     // MARK: - Private
@@ -77,6 +86,17 @@ struct HomeScreen: View {
             }
         }
         .backportSharedBackgroundVisibility(.hidden)
+        
+        // PSST (L1): psst lab — LoRa (Meshtastic) section
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                PsstLabHome.update(profile: context.viewState.userProfile)
+                isPresentingLoRa = true
+            } label: {
+                Image(systemName: "antenna.radiowaves.left.and.right")
+            }
+            .accessibilityLabel("LoRa")
+        }
         
         ToolbarItem(placement: .primaryAction) {
             if #available(iOS 26, *) {
@@ -239,5 +259,14 @@ struct HomeScreen_Previews: PreviewProvider, TestablePreview {
                                    analyticsService: AnalyticsServiceMock(.init()),
                                    bugReportService: BugReportServiceMock(.init()),
                                    userIndicatorController: UserIndicatorControllerMock())
+    }
+}
+
+/// PSST (L1): tells psst lab which psst user this phone is (used in the LoRa card).
+enum PsstLabHome {
+    @MainActor static func update(profile: UserProfile) {
+        LabMeshModel.shared.matrixUserID = profile.id
+        LabMeshModel.shared.displayName = profile.displayName.flatMap { $0.isEmpty ? nil : $0 }
+            ?? String(profile.id.dropFirst().prefix { $0 != ":" })
     }
 }

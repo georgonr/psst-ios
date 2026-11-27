@@ -1,6 +1,7 @@
-"NSCameraUsageDescription" = "psst needs camera access so you can take photos or videos and send them in a chat, and for video calls.";
+"NSCameraUsageDescription" = "psst lab needs camera access so you can take photos or videos and send them in a chat, and for video calls.";
 "NSFaceIDUsageDescription" = "Face ID is used to protect access to your account.";
-"NSLocationWhenInUseUsageDescription" = "psst uses your location only when you send it to a chat or start live sharing. Only the people in the chat can see it; in encrypted chats it is encrypted.";
-"NSMicrophoneUsageDescription" = "psst needs microphone access so you can record and send voice messages, and for calls.";
+"NSLocationWhenInUseUsageDescription" = "psst lab uses your location only when you send it to a chat or start live sharing. Only the people in the chat can see it; in encrypted chats it is encrypted.";
+"NSMicrophoneUsageDescription" = "psst lab needs microphone access so you can record and send voice messages, and for calls.";
 "NSPhotoLibraryUsageDescription" = "This lets you save images and videos to your photo library.";
 "NSPhotoLibraryAddUsageDescription" = "This lets you save images and videos to your photo library.";
+"NSBluetoothAlwaysUsageDescription" = "psst lab uses Bluetooth only to connect to your own Meshtastic LoRa radio, to send and receive LoRa messages. It does not track other devices or your location.";

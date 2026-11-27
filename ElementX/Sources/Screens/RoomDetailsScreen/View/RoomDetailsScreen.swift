@@ -14,6 +14,8 @@ struct RoomDetailsScreen: View {
     @Bindable var context: RoomDetailsScreenViewModel.Context
     /// PSST (D95, D96): disappearing messages and screen protection.
     var psstPrivacy: PsstRoomPrivacySettingsModel?
+    /// PSST (L1): psst lab — LoRa link with the DM contact.
+    var psstLab: PsstLabLoRaLinkModel?
     
     @State private var isTopicExpanded = false
     
@@ -38,6 +40,10 @@ struct RoomDetailsScreen: View {
             
             if let psstPrivacy {
                 PsstRoomPrivacySection(model: psstPrivacy)
+            }
+            
+            if let psstLab, let recipient = context.viewState.dmRecipientInfo?.member {
+                PsstLabLoRaSection(model: psstLab, recipientID: recipient.id)
             }
             
             securitySection

@@ -1,6 +1,7 @@
-"NSCameraUsageDescription" = "psst potrebuje prístup k fotoaparátu, aby ste mohli nasnímať fotky alebo videá a poslať ich do rozhovoru, a na videohovory.";
+"NSCameraUsageDescription" = "psst lab potrebuje prístup k fotoaparátu, aby ste mohli nasnímať fotky alebo videá a poslať ich do rozhovoru, a na videohovory.";
 "NSFaceIDUsageDescription" = "Face ID sa používa na ochranu prístupu k vášmu účtu.";
-"NSLocationWhenInUseUsageDescription" = "psst použije vašu polohu, len keď ju sami pošlete do rozhovoru alebo spustíte živé zdieľanie. Vidia ju len účastníci rozhovoru; v šifrovaných rozhovoroch je šifrovaná.";
-"NSMicrophoneUsageDescription" = "psst potrebuje prístup k mikrofónu, aby ste mohli nahrávať a posielať hlasové správy, a na hovory.";
+"NSLocationWhenInUseUsageDescription" = "psst lab použije vašu polohu, len keď ju sami pošlete do rozhovoru alebo spustíte živé zdieľanie. Vidia ju len účastníci rozhovoru; v šifrovaných rozhovoroch je šifrovaná.";
+"NSMicrophoneUsageDescription" = "psst lab potrebuje prístup k mikrofónu, aby ste mohli nahrávať a posielať hlasové správy, a na hovory.";
 "NSPhotoLibraryUsageDescription" = "Toto vám umožní ukladať obrázky a videá do vašej knižnice fotografií.";
 "NSPhotoLibraryAddUsageDescription" = "Toto vám umožní ukladať obrázky a videá do vašej knižnice fotografií.";
+"NSBluetoothAlwaysUsageDescription" = "psst lab používa Bluetooth len na spojenie s vaším vlastným LoRa rádiom Meshtastic, aby ste mohli posielať a prijímať LoRa správy. Nesleduje iné zariadenia ani vašu polohu.";

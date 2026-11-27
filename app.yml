@@ -1,10 +1,13 @@
 # PSST: privately-branded build of Element X iOS (https://github.com/georgonr/psst-ios).
 # All bundle / app group / keychain identifiers are derived from these values in the target.yml files.
 settings:
-  APP_DISPLAY_NAME: psst
-  PRODUCTION_APP_NAME: psst
-  APP_GROUP_IDENTIFIER: group.eu.macet.psst
-  BASE_BUNDLE_IDENTIFIER: eu.macet.psst
+  # PSST (L1): psst lab — a separate test app (branch lab/meshtastic). Own bundle ID and keychain group, NO App Group
+  # entitlement (the identifier below is only read by code; without the entitlement Element X falls back to the app's
+  # own container), so nothing is shared with psst (eu.macet.psst / group.eu.macet.psst). Installs next to psst.
+  APP_DISPLAY_NAME: psst lab
+  PRODUCTION_APP_NAME: psst lab
+  APP_GROUP_IDENTIFIER: group.eu.macet.psst.lab
+  BASE_BUNDLE_IDENTIFIER: eu.macet.psst.lab
   ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "colors/accent-color"
   # PSST: no team is committed. Signed builds pass DEVELOPMENT_TEAM=<APPLE_TEAM_ID> to xcodebuild
   # (see .github/workflows/ios-release.yml in georgonr/psst). Simulator builds run unsigned.
