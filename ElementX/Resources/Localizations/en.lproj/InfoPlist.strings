@@ -4,3 +4,4 @@
 "NSMicrophoneUsageDescription" = "psst needs microphone access so you can record and send voice messages, and for calls.";
 "NSPhotoLibraryUsageDescription" = "This lets you save images and videos to your photo library.";
 "NSPhotoLibraryAddUsageDescription" = "This lets you save images and videos to your photo library.";
+"NSBluetoothAlwaysUsageDescription" = "psst uses Bluetooth only when you open LoRa, to connect to your own Meshtastic LoRa radio and send and receive LoRa messages. It does not track other devices or your location.";

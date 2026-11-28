@@ -4,3 +4,4 @@
 "NSMicrophoneUsageDescription" = "psst potrebuje prístup k mikrofónu, aby ste mohli nahrávať a posielať hlasové správy, a na hovory.";
 "NSPhotoLibraryUsageDescription" = "Toto vám umožní ukladať obrázky a videá do vašej knižnice fotografií.";
 "NSPhotoLibraryAddUsageDescription" = "Toto vám umožní ukladať obrázky a videá do vašej knižnice fotografií.";
+"NSBluetoothAlwaysUsageDescription" = "psst používa Bluetooth, len keď otvoríte LoRa, na spojenie s vaším vlastným LoRa rádiom Meshtastic a na posielanie a prijímanie LoRa správ. Nesleduje iné zariadenia ani vašu polohu.";

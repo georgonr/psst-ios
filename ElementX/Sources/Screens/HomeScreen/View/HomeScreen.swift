@@ -46,7 +46,10 @@ struct HomeScreen: View {
                 MultiAccountAnnouncementView(context: context)
                     .onAppear { context.send(viewAction: .multiAccountAnnouncementAppeared) }
             }
-            .onAppear { context.send(viewAction: .screenAppeared) }
+            .onAppear {
+                context.send(viewAction: .screenAppeared)
+                PsstLabLoRaRouter.update(profile: context.viewState.userProfile)
+            }
     }
     
     // MARK: - Private
@@ -77,6 +80,16 @@ struct HomeScreen: View {
             }
         }
         .backportSharedBackgroundVisibility(.hidden)
+        
+        // PSST (L1, L1c): psst lab — LoRa (Meshtastic) section, presented by the split coordinator (top level)
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                PsstLabLoRaRouter.shared.open(profile: context.viewState.userProfile)
+            } label: {
+                Image(systemName: "antenna.radiowaves.left.and.right")
+            }
+            .accessibilityLabel("LoRa")
+        }
         
         ToolbarItem(placement: .primaryAction) {
             if #available(iOS 26, *) {
@@ -241,3 +254,4 @@ struct HomeScreen_Previews: PreviewProvider, TestablePreview {
                                    userIndicatorController: UserIndicatorControllerMock())
     }
 }
+

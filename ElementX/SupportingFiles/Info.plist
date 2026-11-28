@@ -57,6 +57,8 @@
 	<false/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>$(APP_DISPLAY_NAME) uses Bluetooth only when you open LoRa, to connect to your own Meshtastic LoRa radio and send and receive LoRa messages. It does not track other devices or your location.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>$(APP_DISPLAY_NAME) needs camera access so you can take photos or videos and send them in a chat, and for video calls.</string>
 	<key>NSFaceIDUsageDescription</key>

@@ -208,7 +208,10 @@ nonisolated struct RoomTimelineItemFactory: RoomTimelineItemFactoryProtocol {
                                        _ messageContent: MessageContent,
                                        _ textMessageContent: TextMessageContent,
                                        _ isOutgoing: Bool) -> RoomTimelineItemProtocol {
-        TextRoomTimelineItem(id: eventItemProxy.id,
+        // PSST (L1): psst lab picks up LoRa cards (Prepojiť s LoRa) from chat messages
+        PsstLabMatrixBridge.observe(body: textMessageContent.body, sender: eventItemProxy.sender.id,
+                                    isOutgoing: isOutgoing, timestamp: eventItemProxy.timestamp)
+        return TextRoomTimelineItem(id: eventItemProxy.id,
                              timestamp: eventItemProxy.timestamp,
                              isOutgoing: isOutgoing,
                              isEditable: eventItemProxy.isEditable,
@@ -351,7 +354,9 @@ nonisolated struct RoomTimelineItemFactory: RoomTimelineItemFactoryProtocol {
                                          _ messageContent: MessageContent,
                                          _ noticeMessageContent: NoticeMessageContent,
                                          _ isOutgoing: Bool) -> RoomTimelineItemProtocol {
-        NoticeRoomTimelineItem(id: eventItemProxy.id,
+        PsstLabMatrixBridge.observe(body: noticeMessageContent.body, sender: eventItemProxy.sender.id,
+                                    isOutgoing: isOutgoing, timestamp: eventItemProxy.timestamp) // PSST (L1)
+        return NoticeRoomTimelineItem(id: eventItemProxy.id,
                                timestamp: eventItemProxy.timestamp,
                                isOutgoing: isOutgoing,
                                isEditable: eventItemProxy.isEditable,
