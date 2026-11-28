@@ -25,7 +25,8 @@ struct LegalInformationScreen: View {
             Section {
                 // PSST (D87): the legal pages live on psst.pro (AppSettings keeps app.psst.pro/*.html for the OAuth client
                 // metadata, MAS wants them on the client_uri host; those addresses redirect here).
-                ListRow(label: .plain(title: L10n.commonCopyright),
+                // PSST (D99): psst's own copyright line
+                ListRow(label: .plain(title: L10n.commonCopyright, description: "© 2026 GT"),
                         kind: .button { openURL(Self.psstTerms) })
                 ListRow(label: .plain(title: L10n.commonAcceptableUsePolicy),
                         kind: .button { openURL(Self.psstTerms) })
