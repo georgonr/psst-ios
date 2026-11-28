@@ -1,0 +1,156 @@
+{
+  "cards" : [
+    {
+      "encoded" : "psstlab1:Ab1GDfAHo3y8FCCTyLdV3BsQ6Gy0JjdK0WqoU-0L38CyuG0cfA9AYWxpY2E6cHNzdC5wcm8FQWxpY2E",
+      "matrixUserID" : "@alica:psst.pro",
+      "name" : "Alica",
+      "node" : 3175484912,
+      "publicKey" : "07a37cbc142093c8b755dc1b10e86cb426374ad16aa853ed0bdfc0b2b86d1c7c"
+    },
+    {
+      "encoded" : "psstlab1:AeolFxhYaa_0UFSXMsuq7V5d-bMKbaMcsOV0K61a1KGnaPGmew9AYm9yaXM6cHNzdC5wcm8NQm9yaXMgxIxpZXJueQ",
+      "matrixUserID" : "@boris:psst.pro",
+      "name" : "Boris Čierny",
+      "node" : 3928299288,
+      "publicKey" : "5869aff450549732cbaaed5e5df9b30a6da31cb0e5742bad5ad4a1a768f1a67b"
+    },
+    {
+      "encoded" : "psstlab1:AQAAAAFYaa_0UFSXMsuq7V5d-bMKbaMcsOV0K61a1KGnaPGmewAA",
+      "name" : "",
+      "node" : 1,
+      "publicKey" : "5869aff450549732cbaaed5e5df9b30a6da31cb0e5742bad5ad4a1a768f1a67b"
+    }
+  ],
+  "directionKeys" : {
+    "a->b" : "dfe50edfd794baeca54a5548c854d790dfb39f959a561521e30293354477e638",
+    "b->a" : "6a94f820001c560ac148426dee83dd6b5024f096db77393cb2b0948a40f46059"
+  },
+  "format" : "psst-lora-e2e-v1",
+  "identities" : {
+    "a" : {
+      "node" : 3175484912,
+      "privateKey" : "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+      "publicKey" : "07a37cbc142093c8b755dc1b10e86cb426374ad16aa853ed0bdfc0b2b86d1c7c"
+    },
+    "b" : {
+      "node" : 3928299288,
+      "privateKey" : "2122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40",
+      "publicKey" : "5869aff450549732cbaaed5e5df9b30a6da31cb0e5742bad5ad4a1a768f1a67b"
+    }
+  },
+  "messages" : [
+    {
+      "counter" : 1,
+      "frames" : [
+        "b100000001003ee08087b543de728d478ac08e61ec16877b805ec0"
+      ],
+      "from" : "a",
+      "text" : "Ahoj",
+      "to" : "b"
+    },
+    {
+      "counter" : 1,
+      "frames" : [
+        "b10000000100ba8e8d02cd7698cdc7e8404cd4bb9b36e6d344caa929c2bb7c4fb16b45363230ef1c"
+      ],
+      "from" : "b",
+      "text" : "Ahoj aj tebe 👋",
+      "to" : "a"
+    },
+    {
+      "counter" : 2,
+      "frames" : [
+        "b10000000201efc0ad18180abbb0b432e2d483008999c496b1dd915ee9b60e252db845ba1e80d07c83bee62d6d9b058c5ba9fe87d9518295a3f9dac73de4466229f9eaa3c731142188372c74808b9a231df581adc10e9be29094f637cc30d2a842fe2860c2cd810bdd258df85f82436309375bc1b1f801f229c7a812b29465c1ae94b5de398c34949a23689f110a9de07710de1d04e8484b5ea1f09b207985fd2cdb933b98b05d26f1fbfcc570beeb9946e7d407966091a68de88d5c2252b4b5b7b1b75bddffa50e",
+        "b1000000021154029a306fef657829aebf9288c8776fc8f43a0f4de167e138857d995e24e8512e9d9a8e89c5187a7281514e2551a126be19f050053bcac77f5926d961b41d36ec7a30c1b650c4d626d22294870c90645239abc034fde326a4658191cc211b9ad8b78c9bed9e6b69a2f64de6454e03cf42cc0d5f53f19060dd573feab17b543e596d4efff9f6e5cb10bbc19690502432d458a272eb58776785ba50e68818f53d57cf315f7ddc3030be47772c5e5f8e1e"
+      ],
+      "from" : "a",
+      "text" : "Príliš žltučký kôň úpel ďábelské ódy — LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa LoRa ",
+      "to" : "b"
+    },
+    {
+      "counter" : 3,
+      "frames" : [
+        "b100000003073381181f0279c8271793a2914fd82998862f110c322c6c76e0ab5214b84f9b4a247d6b0826c9a5f0ef7b55186fda3750b7bf05760180df17719fc129de88f47d895447e7f664f6f68fc943389b7d7c1694d4421a4c3cfad181f130cb838eae6a0377a8a0ffe2e8cbe9f3944ca37849d9708c5842e1307b756dc3d20df0ceedcd59eb2b8b5b7962003dcf3ed3a30e839a3cf140332bc1006b71ad8277fe8e5001c91b3f109f1f967851e86684e1328eff9eff41c5f1ee71b3d6618aec4f1d0f5d05df",
+        "b10000000317753771a1044c2591cd99cceed00162e47a233f09a60dea5412663b403dba5d8520d57853bb04d7104f21c8d91d5b206dddf8fba9bd233e33209ba5ba8393aa841a5c4f6b26fe358fc22e95a870865152b4388bd54dd388955507340f017c36b7c44bd8725ba870b0d81412843cebd337d9f8e043aae85260462d2a1d68d411657657168c2db50dc21c94ceff26aad19159ed7c55d9f91f83699300008d2ae6d04af6c84994825373290358e3e485cf07936db9e242fb27e6a97a6f44fe23d17abb56",
+        "b10000000327fcf6cc8837856621a22d0ed1f7770a056b565bd1e3366d62c1aaa7f58f11e33bb07ebddedc1f22737c165730fff265e4abc7b35d02319886031b538cb8c4f525f86f2b57a6edbfa7e921836a359d668ae1907d3726774ce92f4dca80df87b4f610c9eab5c38a804a997835a6416b61eb78080d5af7fefc3c104781f41d31e1c99e7cdc9f54f39c2e73d589e3ed98073887f9544ba0d75eb9bd4c984b4e473996f0330f1c9696db0d756937ca30a4330f83fe1890e11b9506896f4308465c777b6f82",
+        "b100000003372d8c49943e6a02d969ccff6077a74f091a66bfb1ed0feb4040c8695df0145b32b260d555053d798dadd1b47ac65fab2ef5de7a62d7f79deee990a1e7ad41b67946959e2b3df26452c57fb0e7a03849da436dee741f0eece858037d0952a00c7186e327fad4e4c507583001c63fa15bb3e6872c3fbb932cf353b894aab83a9248e589a240a2352d4afc7d83d9e6fec3541cad15b3efb7b1012d400f4488455efff5169272c825fbb840a2b9416402a270ff9637e7bb0658f74f69f416294b55a4583f",
+        "b1000000034718e9b12f559018f038b083dc10cf84070b60925ca6a19561314c54e5c0d232189ccb6a867004fd379b2ddab66f9dfcb145c95ee1cd65b2ee6b434d4342b6e87bc8b1051f5217741500695a931a9a8deafaa96b05eebf81c531012015cbefba2f8e9d4b3c96eabcec470171b909f0337cdcb7554f5973fd48adf2fcabf5cbaea62f6b57f7aca07195ac9454023596ec4e9c395228c419d677bbe144b040069a8d59af2d8637afd30518083b5070608bd5c175e29aca747436f4789950a4946a193051",
+        "b100000003570e91f7d3580e4f7e156d9b191041f86d57970863410ee83262694ee09bfe158121c46097664b5448f0bb78dda6e9f3c2dc07a510dcdd161f972eadcaf17bbf80c5f0fc8d22f4b93efde10f899c7aeb7cf503adb8c0e98b09afa6cf8066bdb2cbc500e842c0334e37d92e0f181cbe5476fb9a7fe7bd5dc4092b399118d2409e1eb70ce390faa1b7dafd83f6b340c422d910f05204baad7dbc86af41482d888468ba6b830b384e3fcf3a9d3a72d5a736f984aee713622b86d025d2155aa225cf8cc9dd",
+        "b10000000367acbfb4af3505fd743c66c9cf7c144ff744464bcd93f109eb4290162d9e16cdae2e16efea90083600885005647a09b5e7d4a97c2e2bf821d06c6bca27a75a252f56313e37b3bd1c7ef82e92f316e2d9f366ede5f274b5cac85e04176518e2dc5b202a4fb41922a71676c12a775a2e7e7183e44de53bcddd0cb3f1386dfa145dd9f50f14e6f22fc9cdb01f4c2e3747ec65f739535633fa5cc2eff7015442e944ba46d63dd3480a4522ebcbc2fc68e85ba2b0666755b23b9f1ac123e53eec90358670c6",
+        "b10000000377d53a20e2bf83895112472549d863aeb28c9bea0b4594568f27c01becb446911be84b590730a896adee2f25f771aa5e72eb0c3293d8df6d938e4e4c3e1a354bd179235c30f0e483ed9bd1eb5769738da6744564e3594cedd5559d921096f7dfd06841183f7765140bfd99cf07bb19b1f62167a92b7164426381f28ffc6a3f07c35ec1de5f73dea56f77dc8f3e54c13c30577d617bd2b3506191c4f5c5e2f86cae009a0524933506f732e7852725f308c75fb45440570fd95b93729375efce048313ee"
+      ],
+      "from" : "a",
+      "text" : "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "to" : "b"
+    },
+    {
+      "counter" : 70000,
+      "frames" : [
+        "b100011170000c94106cec31f4ab5261527c40ea7b0584"
+      ],
+      "from" : "b",
+      "text" : "",
+      "to" : "a"
+    }
+  ],
+  "notes" : "X25519 private keys are raw 32 bytes (clamped by the X25519 function). Frames are LoRa payloads of Meshtastic PRIVATE_APP (256). directionKeys[\"a->b\"] = HKDF-SHA256(X25519(a,B), salt \"psst-lab/lora/v1\", info \"psst-lab/lora/v1 msg\"||pubA||pubB||nodeA BE||nodeB BE). See DECISIONS L1-09.",
+  "replay" : [
+    {
+      "accept" : true,
+      "counter" : 10
+    },
+    {
+      "accept" : true,
+      "counter" : 9
+    },
+    {
+      "accept" : true,
+      "counter" : 100
+    },
+    {
+      "accept" : false,
+      "counter" : 30
+    },
+    {
+      "accept" : false,
+      "counter" : 100
+    },
+    {
+      "accept" : true,
+      "counter" : 40
+    },
+    {
+      "accept" : true,
+      "counter" : 37
+    },
+    {
+      "accept" : false,
+      "counter" : 37
+    },
+    {
+      "accept" : true,
+      "counter" : 101
+    }
+  ],
+  "tampered" : [
+    {
+      "description" : "a->b counter 1, ciphertext byte 8 flipped",
+      "frames" : [
+        "b100000001003ee08187b543de728d478ac08e61ec16877b805ec0"
+      ]
+    },
+    {
+      "description" : "a->b counter 1, counter byte 2 flipped (nonce + AAD)",
+      "frames" : [
+        "b100010001003ee08087b543de728d478ac08e61ec16877b805ec0"
+      ]
+    },
+    {
+      "description" : "a->b counter 2, last byte of frame 2 (tag) flipped",
+      "frames" : [
+        "b10000000201efc0ad18180abbb0b432e2d483008999c496b1dd915ee9b60e252db845ba1e80d07c83bee62d6d9b058c5ba9fe87d9518295a3f9dac73de4466229f9eaa3c731142188372c74808b9a231df581adc10e9be29094f637cc30d2a842fe2860c2cd810bdd258df85f82436309375bc1b1f801f229c7a812b29465c1ae94b5de398c34949a23689f110a9de07710de1d04e8484b5ea1f09b207985fd2cdb933b98b05d26f1fbfcc570beeb9946e7d407966091a68de88d5c2252b4b5b7b1b75bddffa50e",
+        "b1000000021154029a306fef657829aebf9288c8776fc8f43a0f4de167e138857d995e24e8512e9d9a8e89c5187a7281514e2551a126be19f050053bcac77f5926d961b41d36ec7a30c1b650c4d626d22294870c90645239abc034fde326a4658191cc211b9ad8b78c9bed9e6b69a2f64de6454e03cf42cc0d5f53f19060dd573feab17b543e596d4efff9f6e5cb10bbc19690502432d458a272eb58776785ba50e68818f53d57cf315f7ddc3030be47772c5e5f8e9e"
+      ]
+    }
+  ]
+}
