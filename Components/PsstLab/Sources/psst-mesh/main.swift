@@ -51,6 +51,40 @@ final class Tool {
         report.append(s)
     }
 
+    struct Vectors: Decodable {
+        struct Identity: Decodable { let privateKey: String; let publicKey: String; let node: UInt32 }
+        let identities: [String: Identity]
+    }
+    lazy var vectors: Vectors? = args["vectors"].flatMap { try? JSONDecoder().decode(Vectors.self, from: Data(contentsOf: URL(fileURLWithPath: $0))) }
+    var sentFrames: [[String: Any]] = []
+
+    func hexData(_ h: String) -> Data {
+        Data(stride(from: 0, to: h.count, by: 2).map { UInt8(h[h.index(h.startIndex, offsetBy: $0)..<h.index(h.startIndex, offsetBy: $0 + 2)], radix: 16)! })
+    }
+
+    /// psst-mesh decode --frames android-sent-frames.json --vectors psst-lora-vectors-v1.json
+    /// Decrypts frames another implementation sent (JSON [{counter, from, to, text, frames:[hex]}]) with the vector keys.
+    func decode() -> Int32 {
+        guard let v = vectors, let path = args["frames"], let d = try? Data(contentsOf: URL(fileURLWithPath: path)),
+              let list = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] else { print("usage: decode --frames F --vectors V"); return 2 }
+        func ident(_ node: UInt32) -> (String, Vectors.Identity)? { v.identities.first { $0.value.node == node }.map { ($0.key, $0.value) } }
+        for e in list {
+            let from = UInt32(truncating: e["from"] as! NSNumber), to = UInt32(truncating: e["to"] as! NSNumber)
+            guard let (_, sender) = ident(from), let (_, recipient) = ident(to),
+                  let rid = try? LabIdentity(rawPrivateKey: hexData(recipient.privateKey)) else { check(false, "no vector identity for \(from)->\(to)"); continue }
+            let peer = PeerCard(nodeNum: from, publicKey: hexData(sender.publicKey), matrixUserID: nil, name: "sender")
+            var inbox = LabInbox()
+            var r: LabInbox.Result?
+            do {
+                for f in (e["frames"] as! [String]).reversed() { r = try inbox.receive(frame: hexData(f), from: peer, identity: rid, myNode: to) }
+                if case .message(let text, let c, let n) = r {
+                    check(text == (e["text"] as? String ?? text), "decoded counter \(c), \(n) frame(s), \(Data(text.utf8).count) B: \(text.prefix(40))…")
+                } else { check(false, "incomplete message counter \(e["counter"] ?? "?")") }
+            } catch { check(false, "decode counter \(e["counter"] ?? "?"): \(error)") }
+        }
+        return finish()
+    }
+
     func check(_ ok: Bool, _ what: String) {
         out("\(ok ? "PASS" : "FAIL")  \(what)")
         if !ok { failures += 1 }
@@ -61,7 +95,11 @@ final class Tool {
         let t = SerialTransport(path: port)
         if args["debug"] != nil { t.onDebugLine = { print("  [radio] \($0)") } }
         let keys = FileKeyStore(url: stateDir.appendingPathComponent("x25519.key"))
-        let c = MeshClient(transport: t, store: LabStateStore(directory: stateDir), identity: { try keys.loadOrCreateIdentity() })
+        // --vectors: use identity "a" of the shared test vectors (node !bd460df0 = the Heltec) so that the other side
+        // (Android JVM test) can decrypt the frames with identity "b" (node !ea251718 = the T-LoRa)
+        let vectorID = vectors.map { try? LabIdentity(rawPrivateKey: hexData($0.identities["a"]!.privateKey)) } ?? nil
+        let c = MeshClient(transport: t, store: LabStateStore(directory: args["vectors"] != nil ? stateDir.appendingPathComponent("vectors") : stateDir),
+                           identity: { if let vectorID { return vectorID }; return try keys.loadOrCreateIdentity() })
         c.onEvent = { print("  · \($0)") }
         c.onIncomingMessage = { m in
             print("  ← [\(m.security.rawValue)] \(MeshNode.userID(m.fromNode)) \(m.conversation): \(m.text)")
@@ -170,6 +208,8 @@ final class Tool {
             } catch { print("error: \(error)"); return 1 }
         case "test":
             return await deviceTest()
+        case "decode":
+            return decode()
         default:
             print("usage: see the header of Sources/psst-mesh/main.swift")
         }
@@ -218,17 +258,24 @@ final class Tool {
         let peerID: LabIdentity
         let peerKeyFile = stateDir.appendingPathComponent("test-peer-\(MeshNode.userID(target)).key")
         peerID = (try? FileKeyStore(url: peerKeyFile).loadOrCreateIdentity()) ?? LabIdentity()
+        let vectorPeer = vectors.flatMap { v in v.identities.values.first { $0.node == target } }
         let peerCard = args["peer-card"].flatMap(PeerCard.find(in:))
+            ?? vectorPeer.map { PeerCard(nodeNum: target, publicKey: hexData($0.publicKey), matrixUserID: nil, name: "vector peer") }
             ?? PeerCard(nodeNum: target, publicKey: peerID.publicKey, matrixUserID: nil, name: "test peer")
         client.link(card: peerCard, source: "test")
         for (label, text) in [("single-frame", "Ahoj, toto je šifrovaná správa psst lab 🔒"),
                               ("chunked", String(repeating: "Dlhšia šifrovaná správa psst lab rozdelená na viac LoRa paketov. ", count: 7))] {
             do {
                 let m = try client.sendEncrypted(text, to: target)
+                if let me = client.myNodeNum, let myID = client.myIdentity {
+                    let frames = try LabCrypto.seal(text: text, counter: client.labState.peers[target]!.sendCounter, identity: myID, myNode: me, peer: peerCard)
+                    sentFrames.append(["counter": client.labState.peers[target]!.sendCounter, "from": me, "to": target, "text": text,
+                                       "frames": frames.map { $0.map { String(format: "%02x", $0) }.joined() }])
+                }
                 let r = await waitFinal(m.id, seconds: 300)
                 check(r?.state == .delivered, "psst E2E \(label) (\(Data(text.utf8).count) B → \(m.chunks) frame(s)) to \(MeshNode.userID(target)), all frames ACKed: \(describe(r))")
                 // the frames that went on air decrypt with the peer's key (what the other phone would do)
-                if args["peer-card"] == nil, let me = client.myNodeNum, let myID = client.myIdentity {
+                if args["peer-card"] == nil, args["vectors"] == nil, let me = client.myNodeNum, let myID = client.myIdentity {
                     let myCard = PeerCard(nodeNum: me, publicKey: myID.publicKey, matrixUserID: nil, name: "me")
                     let frames = try LabCrypto.seal(text: text, counter: client.labState.peers[target]!.sendCounter,
                                                     identity: myID, myNode: me, peer: peerCard)
@@ -256,6 +303,11 @@ final class Tool {
     }
 
     func finish() -> Int32 {
+        if let path = args["log-frames"], !sentFrames.isEmpty,
+           let d = try? JSONSerialization.data(withJSONObject: sentFrames, options: [.prettyPrinted, .sortedKeys]) {
+            try? d.write(to: URL(fileURLWithPath: path))
+            out("sent frames logged to \(path)")
+        }
         out("result: \(failures == 0 ? "ALL PASSED" : "\(failures) FAILED")")
         if let path = args["report"] {
             try? (report.joined(separator: "\n") + "\n").write(toFile: path, atomically: true, encoding: .utf8)
