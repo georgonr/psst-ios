@@ -380,6 +380,7 @@
 		38DE3B3FF9EB8661FD3844CC /* CurrentValuePublisherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA393404F96DFB505B86E913 /* CurrentValuePublisherTests.swift */; };
 		38E0F9A4CB5237F039A2EEE6 /* RoomHistorySharingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722013E20EEED73553EC6F8D /* RoomHistorySharingState.swift */; };
 		38E8F5CC90DC0D716B799DE1 /* RoomThreadListServiceProxyMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7396A6491DEC64FCB66F60A1 /* RoomThreadListServiceProxyMock.swift */; };
+		3937E918890801A9B57229E9 /* PsstLabLoRaRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E6019FF2100878DB36443AF /* PsstLabLoRaRouter.swift */; };
 		3982C505960006B341CFD0C6 /* UserDetailsEditScreenModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D0EA07BD545CC9F234DB8D /* UserDetailsEditScreenModels.swift */; };
 		3982E60F9C126437D5E488A3 /* PillContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A6314FDC51DA25712D9A81 /* PillContextTests.swift */; };
 		39A987B3E41B976D1DF944C6 /* CallScreenViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A63A59BFDDC494B1C20119 /* CallScreenViewModel.swift */; };
@@ -2160,6 +2161,7 @@
 		3DC1943ADE6A62ED5129D7C8 /* LoggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingTests.swift; sourceTree = "<group>"; };
 		3DDB7A9BB466C56614BB589D /* NotificationItemProxyProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationItemProxyProtocol.swift; sourceTree = "<group>"; };
 		3DFE4453AB0B34C203447162 /* ImageRoomTimelineItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageRoomTimelineItem.swift; sourceTree = "<group>"; };
+		3E6019FF2100878DB36443AF /* PsstLabLoRaRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PsstLabLoRaRouter.swift; sourceTree = "<group>"; };
 		3E93A1BE7D8A2EBCAD51EEB4 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		3E9E0929CEFA356090BE5FB8 /* RoomMembersListScreenViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomMembersListScreenViewModelTests.swift; sourceTree = "<group>"; };
 		3EF1AC723C2609C7705569CA /* MediaLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaLoaderTests.swift; sourceTree = "<group>"; };
@@ -4878,6 +4880,7 @@
 				2178B951602AA921A5FD9DC8 /* MediaEventsTimelineFlowCoordinator.swift */,
 				C3285BD95B564CA2A948E511 /* OnboardingFlowCoordinator.swift */,
 				A54AAF72E821B4084B7E4298 /* PinnedEventsTimelineFlowCoordinator.swift */,
+				3E6019FF2100878DB36443AF /* PsstLabLoRaRouter.swift */,
 				9A008E57D52B07B78DFAD1BB /* RoomFlowCoordinator.swift */,
 				407C8DD85179D2DB896FC0FA /* RoomFlowCoordinatorStateMachine.swift */,
 				5A70B03471F6027C90EE868C /* RoomMembersFlowCoordinator.swift */,
@@ -9322,6 +9325,7 @@
 				C7ABEBECDC513F7887DACF66 /* ProgressMaskModifier.swift in Sources */,
 				9B356742E035D90A8BB5CABE /* ProposedViewSize.swift in Sources */,
 				213CABC1F745589C16CB3C14 /* PsstL10n.swift in Sources */,
+				3937E918890801A9B57229E9 /* PsstLabLoRaRouter.swift in Sources */,
 				84AB3587CEE173A420B97673 /* PsstLabLoRaSection.swift in Sources */,
 				DA1004716057C90A677F0481 /* PsstNotificationsCallsScreen.swift in Sources */,
 				D3754C6D4412FD7AD7B0CF55 /* PsstRoomPrivacySection.swift in Sources */,

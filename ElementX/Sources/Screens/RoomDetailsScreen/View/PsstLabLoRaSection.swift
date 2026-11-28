@@ -13,7 +13,6 @@ import SwiftUI
 final class PsstLabLoRaLinkModel: ObservableObject {
     @Published private(set) var isSending = false
     @Published var message: String?
-    @Published var showLoRa = false
 
     private let roomProxy: JoinedRoomProxyProtocol
     let lab = LabMeshModel.shared
@@ -70,7 +69,7 @@ struct PsstLabLoRaSection: View {
                     kind: .button { model.sendCard(to: recipientID) })
                 .disabled(model.isSending)
             ListRow(label: .default(title: "Otvoriť LoRa", icon: \.chat),
-                    kind: .button { model.showLoRa = true })
+                    kind: .button { PsstLabLoRaRouter.shared.open() })
         } header: {
             Text("psst lab · LoRa")
                 .compoundListSectionHeader()
@@ -81,9 +80,6 @@ struct PsstLabLoRaSection: View {
         .alert("LoRa", isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } }),
                actions: { Button(L10n.actionOk) { model.message = nil } },
                message: { Text(model.message ?? "") })
-        .fullScreenCover(isPresented: $model.showLoRa) {
-            LoRaRootView { model.showLoRa = false }
-        }
     }
 }
 

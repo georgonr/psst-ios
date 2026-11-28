@@ -25,6 +25,7 @@ public final class CoreBluetoothTransport: NSObject, MeshTransport, BLELink {
     public var onRSSI: ((Int) -> Void)?
 
     public private(set) var discovered: [UUID: DiscoveredRadio] = [:]
+    private var discoveryOrder: [UUID] = []
     public var targetID: UUID?
 
     private let session = BLESession()
@@ -57,6 +58,15 @@ public final class CoreBluetoothTransport: NSObject, MeshTransport, BLELink {
             central?.scanForPeripherals(withServices: [CBUUID(string: MeshtasticBLE.service)],
                                         options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
         }
+    }
+
+    /// One advertisement seen by the scanner (called on the main queue by the CBCentralManager delegate; tests call it
+    /// directly to simulate a scanner).
+    public func ingestAdvertisement(id: UUID, name: String, rssi: Int, now: Date = Date()) {
+        // PSST (L1c): first-seen order, never re-sorted by RSSI — rows must not move under the user's finger
+        if discovered[id] == nil { discoveryOrder.append(id) }
+        discovered[id] = DiscoveredRadio(id: id, name: name, rssi: rssi, lastSeen: now)
+        onDiscovered?(discoveryOrder.compactMap { discovered[$0] })
     }
 
     public func stopScan() {
@@ -154,8 +164,7 @@ extension CoreBluetoothTransport: CBCentralManagerDelegate {
         let id = peripheral.identifier
         let rssi = RSSI.intValue
         MainActor.assumeIsolated {
-            discovered[id] = DiscoveredRadio(id: id, name: name, rssi: rssi, lastSeen: Date())
-            onDiscovered?(discovered.values.sorted { $0.rssi > $1.rssi })
+            ingestAdvertisement(id: id, name: name, rssi: rssi)
             if wantConnect, self.peripheral == nil, id == targetID {
                 self.peripheral = peripheral
                 peripheral.delegate = self

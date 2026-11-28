@@ -32,6 +32,6 @@ let package = Package(
         .target(name: "PsstMeshSerial", dependencies: ["PsstMesh"]),
         .target(name: "PsstLabUI", dependencies: ["PsstMesh", "PsstMeshBLE"]),
         .executableTarget(name: "psst-mesh", dependencies: ["PsstMesh", "PsstMeshSerial", "MeshtasticProtobufs"]),
-        .testTarget(name: "PsstMeshTests", dependencies: ["PsstMesh", "PsstMeshBLE", "MeshtasticProtobufs"])
+        .testTarget(name: "PsstMeshTests", dependencies: ["PsstMesh", "PsstMeshBLE", "PsstLabUI", "MeshtasticProtobufs"])
     ]
 )

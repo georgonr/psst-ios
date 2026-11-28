@@ -60,6 +60,7 @@ class ChatsTabFlowCoordinator: FlowCoordinatorProtocol {
         
         sidebarNavigationStackCoordinator = NavigationStackCoordinator(navigationSplitCoordinator: navigationSplitCoordinator)
         navigationSplitCoordinator.setSidebarCoordinator(sidebarNavigationStackCoordinator)
+        PsstLabLoRaRouter.shared.register(navigationSplitCoordinator) // PSST (L1c)
         
         setupStateMachine()
         setupObservers()

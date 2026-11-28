@@ -37,7 +37,8 @@ public final class LabMeshModel: ObservableObject {
         client.onChange = { [weak self] in self?.refresh() }
         client.onEvent = { [weak self] e in self?.lastEvent = e }
         client.onIncomingMessage = { [weak self] m in self?.notify(m) }
-        transport.onDiscovered = { [weak self] r in self?.radios = r }
+        // the time of the newest advertisement is the clock (real scanner: now; tests: a simulated clock)
+        transport.onDiscovered = { [weak self] r in self?.radiosChanged(r, now: r.map(\.lastSeen).max() ?? Date()) }
         transport.onBluetoothState = { [weak self] p in self?.bluetoothProblem = p }
         transport.onBattery = { [weak self] b in self?.bleBattery = b }
         transport.onRSSI = { [weak self] r in self?.bleRSSI = r }
@@ -56,6 +57,35 @@ public final class LabMeshModel: ObservableObject {
 
     public func startScan() { scanning = true; transport.startScan() }
     public func stopScan() { scanning = false; transport.stopScan() }
+
+    // PSST (L1c): CoreBluetooth reports every advertisement (AllowDuplicates) — dozens per second per radio. Publishing
+    // each one re-rendered the whole LoRa hierarchy continuously. Scan results are coalesced: at most one update per
+    // `radiosInterval`, the latest state always delivered (timer).
+    static let radiosInterval: TimeInterval = 0.5
+    private var pendingRadios: [DiscoveredRadio]?
+    private var lastRadiosPublish = Date.distantPast
+    private var radiosTimer: Timer?
+
+    private func radiosChanged(_ r: [DiscoveredRadio], now: Date) {
+        pendingRadios = r
+        flushRadios(now: now)
+        if pendingRadios != nil, radiosTimer == nil {
+            radiosTimer = Timer.scheduledTimer(withTimeInterval: Self.radiosInterval, repeats: false) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.radiosTimer = nil
+                    self?.flushRadios()
+                }
+            }
+        }
+    }
+
+    /// Publishes pending scan results if the last update is at least `radiosInterval` old.
+    public func flushRadios(now: Date = Date()) {
+        guard let r = pendingRadios, now.timeIntervalSince(lastRadiosPublish) >= Self.radiosInterval else { return }
+        pendingRadios = nil
+        lastRadiosPublish = now
+        if r != radios { radios = r }
+    }
 
     public func connect(_ radio: DiscoveredRadio) {
         stopScan()

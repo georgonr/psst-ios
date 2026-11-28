@@ -6,9 +6,17 @@ import SwiftUI
 
 // MARK: - Root
 
+/// Screens inside LoRa. PSST (L1c): everything is pushed on ONE NavigationStack owned by the root — no sheets
+/// attached to List rows/sections (SwiftUI tears such presentations down when the List re-renders its rows).
+public enum LoRaRoute: Hashable {
+    case scan, nodes, myCard, linkCard, peers, security
+    case conversation(Conversation)
+}
+
 public struct LoRaRootView: View {
     @ObservedObject var model: LabMeshModel
     let onClose: () -> Void
+    @State private var path: [LoRaRoute] = []
 
     public init(model: LabMeshModel = .shared, onClose: @escaping () -> Void) {
         self.model = model
@@ -16,33 +24,43 @@ public struct LoRaRootView: View {
     }
 
     public var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             List {
-                DeviceSection(model: model)
+                DeviceSection(model: model) { path.append(.scan) }
                 Section("Rozhovory") {
                     ForEach(channelList, id: \.self) { c in
-                        NavigationLink(value: c) { ConversationRow(model: model, conversation: c) }
+                        NavigationLink(value: LoRaRoute.conversation(c)) { ConversationRow(model: model, conversation: c) }
                     }
                     ForEach(model.conversations.filter { if case .direct = $0 { true } else { false } }, id: \.self) { c in
-                        NavigationLink(value: c) { ConversationRow(model: model, conversation: c) }
+                        NavigationLink(value: LoRaRoute.conversation(c)) { ConversationRow(model: model, conversation: c) }
                     }
-                    NavigationLink { NodesView(model: model) } label: {
+                    NavigationLink(value: LoRaRoute.nodes) {
                         Label("Nová priama správa — zoznam uzlov", systemImage: "point.3.connected.trianglepath.dotted")
                     }
                 }
                 Section {
-                    NavigationLink { MyCardView(model: model) } label: { Label("Môj kľúč a QR kód", systemImage: "qrcode") }
-                    NavigationLink { LinkCardView(model: model) } label: { Label("Prepojiť kontakt cez QR kód", systemImage: "qrcode.viewfinder") }
-                    NavigationLink { PeersView(model: model) } label: {
+                    NavigationLink(value: LoRaRoute.myCard) { Label("Môj kľúč a QR kód", systemImage: "qrcode") }
+                    NavigationLink(value: LoRaRoute.linkCard) { Label("Prepojiť kontakt cez QR kód", systemImage: "qrcode.viewfinder") }
+                    NavigationLink(value: LoRaRoute.peers) {
                         Label("Prepojené kontakty (\(model.client.labState.peers.count))", systemImage: "person.2.badge.key")
                     }
                 } header: { Text("psst šifrovanie") } footer: {
                     Text("Priame správy medzi dvoma používateľmi psst lab sú šifrované naším kľúčom (X25519 + ChaCha20-Poly1305). Kontakt prepojíte tlačidlom „Prepojiť s LoRa“ v detaile psst rozhovoru alebo QR kódom.")
                 }
-                Section { NavigationLink { SecurityInfoView() } label: { Label("Ako sú LoRa správy šifrované", systemImage: "lock.doc") } }
+                Section { NavigationLink(value: LoRaRoute.security) { Label("Ako sú LoRa správy šifrované", systemImage: "lock.doc") } }
             }
             .navigationTitle("LoRa")
-            .navigationDestination(for: Conversation.self) { ConversationView(model: model, conversation: $0) }
+            .navigationDestination(for: LoRaRoute.self) { route in
+                switch route {
+                case .scan: DeviceScanView(model: model) { if path.last == .scan { path.removeLast() } }
+                case .nodes: NodesView(model: model)
+                case .myCard: MyCardView(model: model)
+                case .linkCard: LinkCardView(model: model)
+                case .peers: PeersView(model: model)
+                case .security: SecurityInfoView()
+                case .conversation(let c): ConversationView(model: model, conversation: c)
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Zavrieť", action: onClose) }
             }
@@ -58,7 +76,7 @@ public struct LoRaRootView: View {
 
 struct DeviceSection: View {
     @ObservedObject var model: LabMeshModel
-    @State private var showScan = false
+    let onScan: () -> Void
 
     var body: some View {
         Section {
@@ -93,11 +111,10 @@ struct DeviceSection: View {
             case .disconnected:
                 if model.hasRememberedDevice { Button("Pripojiť znova") { model.reconnectIfNeeded() } }
             }
-            Button(model.hasRememberedDevice ? "Vybrať iné zariadenie…" : "Vyhľadať zariadenia cez Bluetooth…") { showScan = true }
+            Button(model.hasRememberedDevice ? "Vybrať iné zariadenie…" : "Vyhľadať zariadenia cez Bluetooth…", action: onScan)
         } header: { Text("Zariadenie Meshtastic") } footer: {
             if let e = model.lastEvent { Text(e) }
         }
-        .sheet(isPresented: $showScan) { DeviceScanView(model: model) }
     }
 
     var stateText: String {
@@ -121,10 +138,9 @@ struct DeviceSection: View {
 
 struct DeviceScanView: View {
     @ObservedObject var model: LabMeshModel
-    @Environment(\.dismiss) private var dismiss
+    let onDone: () -> Void
 
     var body: some View {
-        NavigationStack {
             List {
                 Section {
                     if model.radios.isEmpty {
@@ -133,7 +149,7 @@ struct DeviceScanView: View {
                     ForEach(model.radios) { r in
                         Button {
                             model.connect(r)
-                            dismiss()
+                            onDone()
                         } label: {
                             HStack {
                                 Image(systemName: "antenna.radiowaves.left.and.right")
@@ -152,10 +168,8 @@ struct DeviceScanView: View {
                 }
             }
             .navigationTitle("Zariadenia")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Zrušiť") { dismiss() } } }
             .onAppear { model.startScan() }
             .onDisappear { model.stopScan() }
-        }
     }
 }
 
@@ -170,7 +184,7 @@ struct NodesView: View {
         List {
             if nodes.isEmpty { Text("Rádio zatiaľ nepozná žiadne iné uzly.").foregroundStyle(.secondary) }
             ForEach(nodes) { n in
-                NavigationLink(value: Conversation.direct(n.num)) { NodeRow(model: model, node: n) }
+                NavigationLink(value: LoRaRoute.conversation(.direct(n.num))) { NodeRow(model: model, node: n) }
             }
         }
         .navigationTitle("Uzly (\(nodes.count))")
@@ -462,7 +476,18 @@ struct LinkCardView: View {
         List {
             #if os(iOS)
             Section {
-                Button { scanning = true } label: { Label("Naskenovať QR kód", systemImage: "camera") }
+                if scanning {
+                    // inline, not a sheet (L1c)
+                    QRScannerView { code in
+                        scanning = false
+                        handle(code)
+                    }
+                    .frame(height: 300)
+                    .listRowInsets(EdgeInsets())
+                    Button("Zastaviť skenovanie") { scanning = false }
+                } else {
+                    Button { scanning = true } label: { Label("Naskenovať QR kód", systemImage: "camera") }
+                }
             } footer: { Text("Kamera sa použije len na načítanie QR kódu druhého používateľa psst lab.") }
             #endif
             Section("alebo vložte kartu (psstlab1:…)") {
@@ -472,15 +497,6 @@ struct LinkCardView: View {
             if let result { Section { Text(result) } }
         }
         .navigationTitle("Prepojiť cez QR")
-        #if os(iOS)
-        .sheet(isPresented: $scanning) {
-            QRScannerView { code in
-                scanning = false
-                handle(code)
-            }
-            .ignoresSafeArea()
-        }
-        #endif
     }
 
     func handle(_ text: String) {
