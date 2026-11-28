@@ -183,7 +183,7 @@ struct NodesView: View {
                 NavigationLink(value: LoRaRoute.conversation(.direct(n.num))) { NodeRow(model: model, node: n) }
             }
         }
-        .navigationTitle("Uzly (\(nodes.count))")
+        .navigationTitle(psstTr("lora_nodes_count", nodes.count))
     }
 }
 
@@ -203,7 +203,7 @@ struct NodeRow: View {
                 Label(node.lastHeard.map(relative) ?? psstTr("lora_never"), systemImage: "clock")
                 if let s = node.snr { Label(String(format: "SNR %.1f dB", s), systemImage: "waveform") }
                 if let r = node.rssi { Text("\(r) dBm") }
-                if let h = node.hopsAway { Text(h == 0 ? psstTr("lora_direct") : "\(h) skok(y)") }
+                if let h = node.hopsAway { Text(h == 0 ? psstTr("lora_direct") : psstTr("lora_hops", h)) }
                 if let b = node.batteryLevel { Text(b > 100 ? "⚡︎" : "\(b) %") }
             }
             .font(.caption2).foregroundStyle(.secondary)
@@ -421,7 +421,7 @@ struct DeliveryLabel: View {
         case .queued: Label(psstTr("lora_queued"), systemImage: "clock").font(.caption2).foregroundStyle(.secondary)
         case .sent: Label(chunks > 1 ? psstTr("lora_sent_parts", acked, chunks) : psstTr("lora_sent"), systemImage: "checkmark").font(.caption2).foregroundStyle(.secondary)
         case .delivered: Label(psstTr("lora_delivered"), systemImage: "checkmark.circle.fill").font(.caption2).foregroundStyle(.green)
-        case .failed(let why): Label("zlyhalo: \(why)", systemImage: "exclamationmark.circle.fill").font(.caption2).foregroundStyle(.red)
+        case .failed(let why): Label(psstTr("lora_failed", why), systemImage: "exclamationmark.circle.fill").font(.caption2).foregroundStyle(.red)
         }
     }
 }
